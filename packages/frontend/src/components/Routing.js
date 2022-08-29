@@ -26,6 +26,7 @@ import { handleClearAlert } from '../redux/reducers/status';
 import { selectAccountSlice } from '../redux/slices/account';
 import { actions as flowLimitationActions } from '../redux/slices/flowLimitation';
 import { actions as tokenFiatValueActions } from '../redux/slices/tokenFiatValues';
+import { CaliSignWrapper } from '../routes/CaliSignWrapper';
 import { CreateImplicitAccountWrapper } from '../routes/CreateImplicitAccountWrapper';
 import { ImportAccountWithLinkWrapper } from '../routes/ImportAccountWithLinkWrapper';
 import { LoginWrapper } from '../routes/LoginWrapper';
@@ -52,6 +53,7 @@ import {
     WALLET_CREATE_NEW_ACCOUNT_FLOW_URLS,
     WALLET_LOGIN_URL,
     WALLET_SIGN_URL,
+    WALLET_CALIMERO_SIGN_URL,
     WALLET_SEND_MONEY_URL,
 } from '../utils/wallet';
 import AccessKeysWrapper from './access-keys/v2/AccessKeysWrapper';
@@ -331,6 +333,7 @@ class Routing extends Component {
             WALLET_LOGIN_URL,
             WALLET_SEND_MONEY_URL,
             WALLET_SIGN_URL,
+            WALLET_CALIMERO_SIGN_URL,
         ].includes(pathname.replace(/\//g, ''));
 
         const accountFound = this.props.account.localStorage?.accountFound;
@@ -658,6 +661,11 @@ class Routing extends Component {
                                 exact
                                 path="/sign"
                                 component={SignWrapper}
+                            />
+                            <PrivateRoute
+                                exact
+                                path="/cali-sign"
+                                component={CaliSignWrapper}
                             />
                             <PrivateRoute
                                 path="/staking"

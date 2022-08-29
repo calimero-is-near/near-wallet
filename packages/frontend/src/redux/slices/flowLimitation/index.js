@@ -5,6 +5,7 @@ import {
     WALLET_INITIAL_DEPOSIT_URL,
     WALLET_LOGIN_URL,
     WALLET_SIGN_URL,
+    WALLET_CALIMERO_SIGN_URL,
     WALLET_CREATE_NEW_ACCOUNT_FLOW_URLS
 } from '../../../utils/wallet';
 import { getBalance } from '../../actions/account';
@@ -42,6 +43,14 @@ const handleFlowLimitation = createAsyncThunk(
                 accountBalance: true
             }));
         } else if (redirectUrl === `/${WALLET_SIGN_URL}`) {
+            dispatch(setFlowLimitation({
+                mainMenu: true,
+                subMenu: true,
+                accountPages: true,
+                accountData: true,
+                accountBalance: false
+            }));
+        } else if (redirectUrl === `/${WALLET_CALIMERO_SIGN_URL}`) {
             dispatch(setFlowLimitation({
                 mainMenu: true,
                 subMenu: true,

@@ -69,3 +69,7 @@ export const selectAccountUrlCallbackUrl = createSelector(selectAccountUrl, (url
 export const selectAccountUrlMeta = createSelector(selectAccountUrl, (url) => url.meta);
 
 export const selectAccountUrlMessage = createSelector(selectAccountUrl, (url) => url.message);
+
+export const selectAccountUrlShard = createSelector(selectAccountUrl, (url) => url.shard);
+
+export const selectAccountUrlToken = createSelector(selectAccountUrl, (url) => url.token);

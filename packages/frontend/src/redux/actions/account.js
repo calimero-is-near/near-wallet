@@ -23,6 +23,7 @@ import {
     WALLET_CREATE_NEW_ACCOUNT_FLOW_URLS,
     WALLET_INITIAL_DEPOSIT_URL,
     WALLET_LOGIN_URL,
+    WALLET_CALIMERO_SIGN_URL,
     WALLET_SIGN_URL,
     WALLET_RECOVER_ACCOUNT_URL,
     WALLET_LINKDROP_URL,
@@ -84,7 +85,7 @@ export const getProfileStakingDetails = (externalAccountId) => async (dispatch, 
 
 export const handleRedirectUrl = (previousLocation) => (dispatch, getState) => {
     const { pathname } = getLocation(getState());
-    const isValidRedirectUrl = previousLocation.pathname.includes(WALLET_LOGIN_URL) || previousLocation.pathname.includes(WALLET_SIGN_URL);
+    const isValidRedirectUrl = previousLocation.pathname.includes(WALLET_LOGIN_URL) || previousLocation.pathname.includes(WALLET_SIGN_URL) || previousLocation.pathname.includes(WALLET_CALIMERO_SIGN_URL);
     const page = pathname.split('/')[1];
     const guestLandingPage = !page && !wallet.accountId;
     const createAccountPage = page === WALLET_CREATE_NEW_ACCOUNT_URL;
@@ -104,7 +105,7 @@ export const handleClearUrl = () => (dispatch, getState) => {
     const { pathname } = getLocation(getState());
     const page = pathname.split('/')[1];
     const guestLandingPage = !page && !wallet.accountId;
-    const saveUrlPages = [...WALLET_CREATE_NEW_ACCOUNT_FLOW_URLS, WALLET_LOGIN_URL, WALLET_SIGN_URL, WALLET_LINKDROP_URL].includes(page);
+    const saveUrlPages = [...WALLET_CREATE_NEW_ACCOUNT_FLOW_URLS, WALLET_LOGIN_URL, WALLET_SIGN_URL, WALLET_CALIMERO_SIGN_URL, WALLET_LINKDROP_URL].includes(page);
     const initialDepositPage = WALLET_INITIAL_DEPOSIT_URL.includes(page);
 
     if (!guestLandingPage && !saveUrlPages) {
@@ -122,16 +123,18 @@ export const handleRefreshUrl = (prevRouter) => (dispatch, getState) => {
     const { pathname, search, hash } = prevRouter?.location || getLocation(getState());
     const currentPage = pathname.split('/')[pathname[1] === '/' ? 2 : 1];
 
-    if ([...WALLET_CREATE_NEW_ACCOUNT_FLOW_URLS, WALLET_LOGIN_URL, WALLET_SIGN_URL, WALLET_LINKDROP_URL, WALLET_BATCH_IMPORT_URL, WALLET_VERIFY_OWNER_URL].includes(currentPage)) {
+    if ([...WALLET_CREATE_NEW_ACCOUNT_FLOW_URLS, WALLET_LOGIN_URL, WALLET_SIGN_URL, WALLET_CALIMERO_SIGN_URL, WALLET_LINKDROP_URL, WALLET_BATCH_IMPORT_URL, WALLET_VERIFY_OWNER_URL].includes(currentPage)) {
         const parsedUrl = {
-            ...parse(search),
+            ...parse(currentPage === WALLET_CALIMERO_SIGN_URL ? hash : search),
             referrer: document.referrer ? new URL(document.referrer).hostname : undefined,
             redirect_url: prevRouter ? prevRouter.location.pathname : undefined
         };
+
+        console.log(parsedUrl);
         if ([WALLET_CREATE_NEW_ACCOUNT_URL, WALLET_LINKDROP_URL, WALLET_VERIFY_OWNER_URL].includes(currentPage) && search !== '') {
             saveState(parsedUrl);
             dispatch(refreshUrl(parsedUrl));
-        } else if ([WALLET_LOGIN_URL, WALLET_SIGN_URL, WALLET_BATCH_IMPORT_URL].includes(currentPage) && (search !== '' || hash !== '')) {
+        } else if ([WALLET_LOGIN_URL, WALLET_SIGN_URL, WALLET_CALIMERO_SIGN_URL, WALLET_BATCH_IMPORT_URL].includes(currentPage) && (search !== '' || hash !== '')) {
             saveState(parsedUrl);
             dispatch(refreshUrl(parsedUrl));
             dispatch(checkContractId());

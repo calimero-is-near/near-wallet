@@ -36,6 +36,7 @@ export const WALLET_CREATE_NEW_ACCOUNT_FLOW_URLS = [
 ];
 export const WALLET_LOGIN_URL = 'login';
 export const WALLET_SIGN_URL = 'sign';
+export const WALLET_CALIMERO_SIGN_URL = 'cali-sign';
 export const WALLET_BATCH_IMPORT_URL = 'batch-import';
 export const WALLET_INITIAL_DEPOSIT_URL = 'initial-deposit';
 export const WALLET_LINKDROP_URL = 'linkdrop';
