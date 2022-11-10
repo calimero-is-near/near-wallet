@@ -654,7 +654,7 @@ class Routing extends Component {
                                 component={Privacy}
                                 indexBySearchEngines={true}
                             />
-                            {WEB3AUTH_FEATURE_ENABLED && (
+                            {true && (
                                 <PrivateRoute
                                     exact
                                     path="/verify-owner"
