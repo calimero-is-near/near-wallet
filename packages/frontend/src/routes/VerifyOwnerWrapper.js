@@ -17,14 +17,14 @@ import {
     VERIFY_OWNER_STATUS,
     selectVerifyOwnerError,
 } from '../redux/slices/verifyOwner';
-import { addFragmentParams } from '../utils/addFragmentParams';
+import { addQueryParams } from '../utils/addQueryParams';
 import { isUrlNotJavascriptProtocol } from '../utils/helper-api';
 
 const buildRedirectUrl = (accountUrlCallbackUrl, meta, signedRequest, error) => {
     if (!error) {
-        return addFragmentParams(accountUrlCallbackUrl, {...signedRequest, meta});
+        return addQueryParams(accountUrlCallbackUrl, {...signedRequest, meta});
     }
-    return addFragmentParams(accountUrlCallbackUrl, {
+    return addQueryParams(accountUrlCallbackUrl, {
         meta,
         error: error?.message?.substring(0, 100) || 'Unknown error',
     });

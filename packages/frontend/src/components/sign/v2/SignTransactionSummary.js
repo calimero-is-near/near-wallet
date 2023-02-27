@@ -60,7 +60,6 @@ export default ({
     customRPCUrl,
     privateShardId
 }) => {
-    console.log('Insufficient balance: ', availableBalance, 'isValidCallbackUrl', isValidCallbackUrl, 'isSignerValid', isSignerValid);
     const insufficientBalance = availableBalance && transferAmount && new BN(availableBalance).lt(new BN(transferAmount));
     return (
         <StyledContainer className='small-centered border'>

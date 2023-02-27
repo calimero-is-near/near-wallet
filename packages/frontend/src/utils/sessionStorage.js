@@ -9,7 +9,6 @@ export const loadState = () => {
 };
 
 export const saveState = (state) => {
-    console.log(state);
     try {
         sessionStorage.setItem(KEY_WALLET_URL, JSON.stringify(state));
     } catch (err) {

@@ -728,9 +728,7 @@ export default class Wallet {
 
     async addShardAccessKey(accountId, contractId, publicKey, fullAccess = false, methodNames = '', shardRpc, shardApiToken) {
         const wallet = this._getPrivateShardWallet(shardRpc, shardApiToken);
-        console.log(wallet);
         const account =  await wallet.getAccount(accountId);
-        console.log(account);
         // const has2fa = await TwoFactor.has2faEnabled(account);
         // console.log('key being added to 2fa account ?', has2fa, account);
         try {
@@ -1401,7 +1399,6 @@ export default class Wallet {
         customRPCUrl,
         xApiToken
     ) {
-
         const transactionHashes = [];
         const args = { url: customRPCUrl + '/' };
         if (xApiToken) {

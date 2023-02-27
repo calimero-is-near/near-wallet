@@ -10,11 +10,10 @@ import SignTransactionDetailsWrapper from '../components/sign/v2/SignTransaction
 import SignTransactionSummaryWrapper from '../components/sign/v2/SignTransactionSummaryWrapper';
 import { Mixpanel } from '../mixpanel';
 import { switchAccount, redirectTo } from '../redux/actions/account';
-import { selectAccountId, selectAccountUrlPrivateShardId, selectAccountUrlPrivateShardRpc, selectAccountUrlPrivateShardToken } from '../redux/slices/account';
+import { selectAccountId, selectAccountUrlPrivateShardId } from '../redux/slices/account';
 import { selectAvailableAccounts, selectAvailableAccountsIsLoading } from '../redux/slices/availableAccounts';
 import {
     handleSignTransactions,
-    handleSignPrivateShardTransactions,
     selectSignFeesGasLimitIncludingGasChanges,
     SIGN_STATUS,
     selectSignStatus,
@@ -57,9 +56,7 @@ const SignWrapper = ({ urlQuery }) => {
     const transactions = useSelector(selectSignTransactions);
     const accountId = useSelector(selectAccountId);
     const transactionBatchisValid = useSelector(selectSignTransactionsBatchIsValid);
-    const customRPCUrl = useSelector(selectAccountUrlPrivateShardRpc);
     const privateShardId = useSelector(selectAccountUrlPrivateShardId);
-    const xApiToken = useSelector(selectAccountUrlPrivateShardToken);
 
     const isValidCallbackUrl = isUrlNotJavascriptProtocol(signCallbackUrl);
     const signerId = transactions.length && transactions[0].signerId;
@@ -109,24 +106,13 @@ const SignWrapper = ({ urlQuery }) => {
         }
     }, [signStatus]);
 
-    // useEffect(() => {
-    //     if (urlQuery.calimeroRPCEndpoint && urlQuery.calimeroShardId) {
-    //         // if (accountId.endsWith(metaJson.calimeroShardId)) {}
-    //         setCustomRPCUrl(urlQuery.calimeroRPCEndpoint);
-    //         setPrivateShardId(urlQuery.calimeroShardId);
-    //         setXApiToken(urlQuery.calimeroAuthToken);
-    //     }
-    //     // TODO: handle situation when shardId doesn't exist in accountId
-    //     // probably will need to change view
-    // }, [urlQuery]);
-
     const handleApproveTransaction = async () => {
         Mixpanel.track('SIGN approve the transaction');
         await dispatch(handleSignTransactions());
     };
 
     const handleCancelTransaction = async () => {
-        if (customRPCUrl && privateShardId) {
+        if (privateShardId) {
             const encounter = addQueryParams(signCallbackUrl, {
                 signMeta,
                 errorCode: encodeURIComponent('userRejected'),
