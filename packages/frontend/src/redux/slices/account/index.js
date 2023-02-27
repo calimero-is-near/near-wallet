@@ -69,3 +69,9 @@ export const selectAccountUrlCallbackUrl = createSelector(selectAccountUrl, (url
 export const selectAccountUrlMeta = createSelector(selectAccountUrl, (url) => url.meta);
 
 export const selectAccountUrlMessage = createSelector(selectAccountUrl, (url) => url.message);
+
+export const selectAccountUrlPrivateShardId = createSelector(selectAccountUrl, (url) => url.calimeroShardId);
+
+export const selectAccountUrlPrivateShardRpc = createSelector(selectAccountUrl, (url) => url.calimeroRPCEndpoint);
+
+export const selectAccountUrlPrivateShardToken = createSelector(selectAccountUrl, (url) => url.calimeroAuthToken);

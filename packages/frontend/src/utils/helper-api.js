@@ -15,6 +15,7 @@ export async function getAccountIdsBySeedPhrase(seedPhrase) {
 }
 
 export function isUrlNotJavascriptProtocol(url) {
+    console.log('URL', url);
     if (!url) {
         return true;
     }

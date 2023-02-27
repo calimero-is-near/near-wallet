@@ -1823,6 +1823,9 @@
         "addLedgerAccountId": {
             "errorRpc": "Error appears while recovering the account."
         },
+        "addAccessKeyToPrivateShard": {
+            "errorPrivateShard": "An error has occurred.<br />The access key wasn't synced in the private shard."
+        },
         "connectLedger": {
             "noClient": "Ledger is not connected yet. Please connect ledger first."
         },

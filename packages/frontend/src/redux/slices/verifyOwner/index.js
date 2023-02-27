@@ -44,8 +44,7 @@ export const handleAuthorizationRequestConfirmed = createAsyncThunk(
                 accountId,
                 message,
                 blockId: blockInfo.header.hash,
-                publicKey: Buffer.from(publicKey.data).toString('base64'),
-                keyType: publicKey.keyType
+                publicKey: publicKey.toString()
             };
 
             const encoded = JSON.stringify(data);
@@ -53,8 +52,7 @@ export const handleAuthorizationRequestConfirmed = createAsyncThunk(
 
             return {
                 ...data,
-                signature: Buffer.from(signed.signed.signature).toString('base64'),
-                keyType: signed.signed.publicKey.keyType
+                signature: Buffer.from(signed.signed.signature).toString('base64')
             };
         } catch (error) {
             dispatch(

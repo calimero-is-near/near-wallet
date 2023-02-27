@@ -7,6 +7,7 @@ import { createActions, createAction } from 'redux-actions';
 
 import CONFIG from '../../config';
 import { actions as activeAccountActions } from '../../redux/slices/activeAccount';
+import {syncPrivateShardAccount} from '../../services/PrivateShard';
 import { showAlert } from '../../utils/alerts';
 import { isUrlNotJavascriptProtocol } from '../../utils/helper-api';
 import {
@@ -43,10 +44,13 @@ import {
     selectAccountUrlMeta,
     selectAccountUrlMethodNames,
     selectAccountUrlPublicKey,
+    selectAccountUrlPrivateShardId,
     selectAccountUrlRedirectUrl,
     selectAccountUrlSuccessUrl,
     selectAccountUrlTitle,
-    selectAccountUrlTransactions
+    selectAccountUrlTransactions,
+    selectAccountUrlPrivateShardToken,
+    selectAccountUrlPrivateShardRpc
 } from '../slices/account';
 import { createAccountWithSeedPhrase } from '../slices/account/createAccountThunks';
 import { selectAllAccountsHasLockup } from '../slices/allAccounts';
@@ -121,18 +125,23 @@ export const handleRefreshUrl = (prevRouter) => (dispatch, getState) => {
     const currentPage = pathname.split('/')[pathname[1] === '/' ? 2 : 1];
 
     if ([...WALLET_CREATE_NEW_ACCOUNT_FLOW_URLS, WALLET_LOGIN_URL, WALLET_SIGN_URL, WALLET_LINKDROP_URL, WALLET_BATCH_IMPORT_URL, WALLET_VERIFY_OWNER_URL].includes(currentPage)) {
-        const parsedUrl = {
+        let parsedUrl = {
             ...parse(search),
             referrer: document.referrer ? new URL(document.referrer).hostname : undefined,
             redirect_url: prevRouter ? prevRouter.location.pathname : undefined
         };
+        const isPrivateShard = parsedFragment?.calimeroShardId;
+        const parsedFragment = parse(hash);
+        if ( parsedFragment.calimeroShardId) {
+            parsedUrl = { ...parsedUrl, ...parsedFragment };
+        }
         if ([WALLET_CREATE_NEW_ACCOUNT_URL, WALLET_LINKDROP_URL, WALLET_VERIFY_OWNER_URL].includes(currentPage) && search !== '') {
             saveState(parsedUrl);
             dispatch(refreshUrl(parsedUrl));
         } else if ([WALLET_LOGIN_URL, WALLET_SIGN_URL, WALLET_BATCH_IMPORT_URL].includes(currentPage) && (search !== '' || hash !== '')) {
             saveState(parsedUrl);
             dispatch(refreshUrl(parsedUrl));
-            dispatch(checkContractId());
+            dispatch(checkContractId(isPrivateShard));
         } else {
             dispatch(refreshUrl(loadState()));
         }
@@ -148,7 +157,7 @@ export const handleRefreshUrl = (prevRouter) => (dispatch, getState) => {
     }
 };
 
-const checkContractId = () => async (dispatch, getState) => {
+const checkContractId = (isPrivateShardContract = false) => async (dispatch, getState) => {
     const contractId = selectAccountUrlContractId(getState());
     const failureUrl = selectAccountUrlFailureUrl(getState());
 
@@ -164,7 +173,8 @@ const checkContractId = () => async (dispatch, getState) => {
         }
 
         try {
-            await wallet.getAccountBasic(contractId).state();
+            const getAccount = isPrivateShardContract ? wallet.getAccountBasic :  wallet.getPrivateShardAccountBasic;
+            await getAccount(contractId).state();
         } catch (error) {
             if (error.message.indexOf('does not exist while viewing') !== -1) {
                 redirectIncorrectContractId();
@@ -200,10 +210,15 @@ export const allowLogin = () => async (dispatch, getState) => {
     const methodNames = selectAccountUrlMethodNames(getState());
     const title = selectAccountUrlTitle(getState());
     const successUrl = selectAccountUrlSuccessUrl(getState());
+    const shardId = selectAccountUrlPrivateShardId(getState());
+    const shardRpc = selectAccountUrlPrivateShardRpc(getState());
+    const shardApiToken = selectAccountUrlPrivateShardToken(getState());
+
+    const addAccessKeyAction = shardId ? addShardAccessKey : addAccessKey;
 
     if (successUrl) {
         if (publicKey) {
-            await dispatch(withAlert(addAccessKey(wallet.accountId, contractId, publicKey, false, methodNames), { onlyError: true }));
+            await dispatch(withAlert(addAccessKeyAction(wallet.accountId, contractId, publicKey, false, methodNames, shardRpc, shardApiToken), { onlyError: true }));
         }
         const availableKeys = await wallet.getAvailableKeys();
 
@@ -218,7 +233,7 @@ export const allowLogin = () => async (dispatch, getState) => {
             window.location = parsedUrl.href;
         }
     } else {
-        await dispatch(withAlert(addAccessKey(wallet.accountId, contractId, publicKey, false, methodNames), { data: { title } }));
+        await dispatch(withAlert(addAccessKeyAction(wallet.accountId, contractId, publicKey, false, methodNames, shardRpc, shardApiToken), { data: { title } }));
         dispatch(redirectTo('/authorized-apps', { globalAlertPreventClear: true }));
     }
 };
@@ -485,7 +500,8 @@ export const finishAccountSetup = () => async (dispatch, getState) => {
 
 export const {
     addAccessKey,
-    addAccessKeySeedPhrase
+    addAccessKeySeedPhrase,
+    addShardAccessKey
 } = createActions({
     ADD_ACCESS_KEY: [
         wallet.addAccessKey.bind(wallet),
@@ -505,6 +521,19 @@ export const {
             }
         },
         () => showAlert()
+    ],
+    ADD_SHARD_ACCESS_KEY: [
+        async (accountId, contractId, publicKey, fullAccess = false, methodNames = '', shardRpc, shardApiToken) => {
+            try {
+                const account = await wallet.getAccount(accountId);
+                const signature = await wallet.signatureFor(account);
+                await syncPrivateShardAccount({ accountId, publicKey, signature });
+                await wallet.addShardAccessKey(accountId, contractId, publicKey, fullAccess, methodNames, shardRpc, shardApiToken);
+            } catch (error) {
+                throw new WalletError(error, 'addAccessKeyToPrivateShard.errorPrivateShard');
+            }
+        },
+        (title) => showAlert({ title })
     ]
 });
 

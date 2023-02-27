@@ -67,6 +67,7 @@ import { actions as tokenFiatValueActions } from '../redux/slices/tokenFiatValue
 import CreateImplicitAccountWrapper from '../routes/CreateImplicitAccountWrapper';
 import ImportAccountWithLinkWrapper from '../routes/ImportAccountWithLinkWrapper';
 import LoginWrapper from '../routes/LoginWrapper';
+import ShardLoginWrapper from '../routes/ShardLoginWrapper';
 import SetupLedgerNewAccountWrapper from '../routes/SetupLedgerNewAccountWrapper';
 import SetupPassphraseNewAccountWrapper from '../routes/SetupPassphraseNewAccountWrapper';
 import SetupRecoveryImplicitAccountWrapper from '../routes/SetupRecoveryImplicitAccountWrapper';
@@ -110,7 +111,7 @@ const theme = {};
 const PATH_PREFIX = CONFIG.PUBLIC_URL;
 
 // TODO: https://mnw.atlassian.net/browse/MNW-98
-const WEB3AUTH_FEATURE_ENABLED = false;
+const WEB3AUTH_FEATURE_ENABLED = true;
 
 const Container = styled.div`
     min-height: 100vh;
@@ -564,7 +565,14 @@ class Routing extends Component {
                             />
                             <PrivateRoute
                                 path="/login"
-                                component={LoginWrapper}
+                                render={() => {
+                                    console.log(parse(this.props.router.hash));
+                                    if(parse(this.props.router.location.hash)?.calimeroShardId) {
+                                        return <ShardLoginWrapper />
+                                    }
+                                    console.log("Normal Login", this.props.router.location);
+                                    return <LoginWrapper />
+                                }}
                             />
                             <PrivateRoute
                                 exact

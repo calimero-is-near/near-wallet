@@ -3,7 +3,9 @@ import { utils, transactions as transaction } from 'near-api-js';
 import { handleActions } from 'redux-actions';
 
 import { parseTransactionsToSign, makeAccountActive } from '../../actions/account';
-import { calculateGasLimit, increaseGasForFirstTransaction, handleSignTransactions, handleSignPrivateShardTransactions, SIGN_STATUS, removeSuccessTransactions, updateSuccessHashes, checkAbleToIncreaseGas, getFirstTransactionWithFunctionCallAction, calculateGasForSuccessTransactions } from '../../slices/sign';
+import { calculateGasLimit, increaseGasForFirstTransaction, handleSignTransactions,
+    //  handleSignPrivateShardTransactions,
+      SIGN_STATUS, removeSuccessTransactions, updateSuccessHashes, checkAbleToIncreaseGas, getFirstTransactionWithFunctionCallAction, calculateGasForSuccessTransactions } from '../../slices/sign';
 
 const initialState = {
     status: SIGN_STATUS.NEEDS_CONFIRMATION,
@@ -108,9 +110,9 @@ const sign = handleActions({
     [handleSignTransactions.pending]: handleTransactionsPending,
     [handleSignTransactions.fulfilled]: handleTransactionsFulfilled,
     [handleSignTransactions.rejected]: handleTransactionsRejected,
-    [handleSignPrivateShardTransactions.pending]: handleTransactionsPending,
-    [handleSignPrivateShardTransactions.fulfilled]: handleTransactionsFulfilled,
-    [handleSignPrivateShardTransactions.rejected]: handleTransactionsRejected,
+    // [handleSignPrivateShardTransactions.pending]: handleTransactionsPending,
+    // [handleSignPrivateShardTransactions.fulfilled]: handleTransactionsFulfilled,
+    // [handleSignPrivateShardTransactions.rejected]: handleTransactionsRejected,
     [makeAccountActive]: () => {
         return initialState;
     }
