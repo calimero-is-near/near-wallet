@@ -2,7 +2,7 @@ import { ConnectedRouter, getRouter } from 'connected-react-router';
 import isString from 'lodash.isstring';
 import { parseSeedPhrase } from 'near-seed-phrase';
 import PropTypes from 'prop-types';
-import { parse, stringify } from 'query-string';
+import { stringify } from 'query-string';
 import React, { Component } from 'react';
 import ReactDOMServer from 'react-dom/server';
 import { withLocalize } from 'react-localize-redux';
@@ -67,7 +67,6 @@ import { actions as tokenFiatValueActions } from '../redux/slices/tokenFiatValue
 import CreateImplicitAccountWrapper from '../routes/CreateImplicitAccountWrapper';
 import ImportAccountWithLinkWrapper from '../routes/ImportAccountWithLinkWrapper';
 import LoginWrapper from '../routes/LoginWrapper';
-import ShardLoginWrapper from '../routes/ShardLoginWrapper';
 import SetupLedgerNewAccountWrapper from '../routes/SetupLedgerNewAccountWrapper';
 import SetupPassphraseNewAccountWrapper from '../routes/SetupPassphraseNewAccountWrapper';
 import SetupRecoveryImplicitAccountWrapper from '../routes/SetupRecoveryImplicitAccountWrapper';
@@ -565,14 +564,7 @@ class Routing extends Component {
                             />
                             <PrivateRoute
                                 path="/login"
-                                render={() => {
-                                    console.log(parse(this.props.router.hash));
-                                    if(parse(this.props.router.location.hash)?.calimeroShardId) {
-                                        return <ShardLoginWrapper />
-                                    }
-                                    console.log("Normal Login", this.props.router.location);
-                                    return <LoginWrapper />
-                                }}
+                                component={LoginWrapper}
                             />
                             <PrivateRoute
                                 exact
@@ -626,11 +618,7 @@ class Routing extends Component {
                             <PrivateRoute
                                 exact
                                 path="/sign"
-                                render={() => (
-                                    <SignWrapper
-                                        urlQuery={parse(this.props.router.location.hash)}
-                                    />
-                                )}
+                                component={SignWrapper}
                             />
                             <PrivateRoute
                                 path="/staking"
