@@ -12,7 +12,8 @@ import {
     selectAccountLocalStorageAccountId,
     selectAccountUrlReferrer,
     selectAccountAccountsBalances,
-    selectAccountExists
+    selectAccountExists,
+    selectAccountUrlPrivateShardRpc
 } from '../../../redux/slices/account';
 import { selectAvailableAccounts } from '../../../redux/slices/availableAccounts';
 import { isUrlNotJavascriptProtocol } from '../../../utils/helper-api';
@@ -24,7 +25,8 @@ export default ({
     contractIdUrl,
     onClickNext,
     failureUrl,
-    successUrl
+    successUrl,
+    isPrivateShard
 }) => {
 
     const dispatch = useDispatch();
@@ -35,6 +37,7 @@ export default ({
     const accountUrlReferrer = useSelector(selectAccountUrlReferrer);
     const failureAndSuccessUrlsAreValid = isUrlNotJavascriptProtocol(failureUrl) && isUrlNotJavascriptProtocol(successUrl);
     const accountExists = useSelector(selectAccountExists);
+    const privateSharsRpcUrl = useSelector(selectAccountUrlPrivateShardRpc);
 
     return (
         <SelectAccountLogin
@@ -62,6 +65,7 @@ export default ({
             onClickNext={onClickNext}
             failureAndSuccessUrlsAreValid={failureAndSuccessUrlsAreValid}
             accountExists={accountExists}
+            customRPCUrl={privateSharsRpcUrl}
         />
     );
 };

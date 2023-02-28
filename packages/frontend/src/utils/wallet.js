@@ -1,6 +1,7 @@
 import isEqual from 'lodash.isequal';
 import * as nearApiJs from 'near-api-js';
 import { MULTISIG_CHANGE_METHODS } from 'near-api-js/lib/account_multisig';
+import { JsonRpcProvider } from 'near-api-js/lib/providers';
 import { PublicKey } from 'near-api-js/lib/utils';
 import { KeyType } from 'near-api-js/lib/utils/key_pair';
 import { generateSeedPhrase, parseSeedPhrase } from 'near-seed-phrase';
@@ -713,6 +714,55 @@ export default class Wallet {
         }
     }
 
+    _getPrivateShardWallet = (privateShardRpc, privateShardApiToken) => {
+        const args = { url: privateShardRpc + '/' };
+        console.log(privateShardRpc);
+        if (privateShardApiToken) {
+            args.headers = {
+                'x-api-key' : privateShardApiToken
+            };
+        };
+        const connection = nearApiJs.Connection.fromConfig({
+            networkId: CONFIG.NETWORK_ID,
+            provider: new JsonRpcProvider({ type: 'JsonRpcProvider', ...args }),
+            signer: this.signer,
+        });
+        const privateShardWallet = new Wallet();
+        privateShardWallet.connection = connection;
+        return privateShardWallet;
+    }
+
+    async addShardAccessKey(accountId, contractId, publicKey, fullAccess = false, methodNames = '', shardRpc, shardApiToken) {
+        const wallet = this._getPrivateShardWallet(shardRpc, shardApiToken);
+        const account =  await wallet.getAccount(accountId);
+        // const has2fa = await TwoFactor.has2faEnabled(account);
+        // console.log('key being added to 2fa account ?', has2fa, account);
+        try {
+            console.log('adding key', publicKey.toString(), 'to', accountId, 'for', contractId, 'with methods', methodNames);
+            // TODO: Why not always pass `fullAccess` explicitly when it's desired?
+            // TODO: Alternatively require passing MULTISIG_CHANGE_METHODS from caller as `methodNames`
+            if (fullAccess || (accountId === contractId && !methodNames.length)) {
+                console.log('adding full access key', publicKey.toString());
+                return await account.addKey(publicKey);
+            } else {
+                // const isMultisig = !methodNames.length && accountId === contractId;
+                // const methodNames = isMultisig ? MULTISIG_CHANGE_METHODS : methodNames;
+                return await account.addKey(
+                    publicKey.toString(),
+                    contractId,
+                    methodNames,
+                    CONFIG.ACCESS_KEY_FUNDING_AMOUNT
+                );
+            }
+        } catch (e) {
+            console.error(e);
+            if (e.type === 'AddKeyAlreadyExists') {
+                return true;
+            }
+            throw e;
+        }
+    }
+
     async addLedgerAccessKey(path, accountIdOverride) {
         const accountId = accountIdOverride || this.accountId;
 
@@ -920,6 +970,10 @@ export default class Wallet {
 
     getAccountBasic(accountId) {
         return new nearApiJs.Account(this.connection, accountId);
+    }
+
+    getPrivateShardAccountBasic(accountId) {
+        return this.getPrivateShardConnection().account(accountId);
     }
 
     async getAccount(accountId, limitedAccountData = false) {
@@ -1289,8 +1343,13 @@ export default class Wallet {
         }
     }
 
-    async signAndSendTransactions(transactions, accountId = this.accountId) {
-        const account = await this.getAccount(accountId);
+    async signAndSendTransactions(transactions, accountId = this.accountId, privateShardRpc = null, privateShardToken = null) {
+        let account;
+        if (privateShardRpc) {
+            account = await this._getPrivateShardWallet(privateShardRpc, privateShardToken).getAccount(accountId);
+        } else {
+            account = await this.getAccount(accountId);
+        }
 
         const transactionHashes = [];
         for (let { receiverId, nonce, blockHash, actions } of transactions) {
@@ -1330,53 +1389,6 @@ export default class Wallet {
                 throw new Error(
                     `Transaction failure for transaction hash: ${transaction.hash}, receiver_id: ${transaction.receiver_id} .`
                 );
-            }
-            transactionHashes.push({
-                hash: transaction.hash,
-                nonceString: nonce.toString()
-            });
-        }
-
-        return transactionHashes;
-    }
-
-    async signAndSendCalimeroTransaction(
-        transactions,
-        accountId = this.accountId,
-        customRPCUrl,
-        xApiToken
-    ) {
-        const transactionHashes = [];
-        const args = { url: customRPCUrl + '/' };
-        if (xApiToken) {
-            args.headers = {
-                'x-api-key' : xApiToken
-            };
-        };
-        const calimeroConnection = nearApiJs.Connection.fromConfig({
-            networkId: CONFIG.NETWORK_ID,
-            provider: { type: 'JsonRpcProvider', args },
-            signer: this.signer
-        });
-        for (let { receiverId, nonce, blockHash, actions } of transactions) {
-            let status, transaction;
-
-            const [, signedTransaction] = await nearApiJs.transactions.signTransaction(
-                receiverId,
-                nonce,
-                actions,
-                blockHash,
-                calimeroConnection.signer,
-                accountId,
-                CONFIG.NETWORK_ID
-            );
-            ({ status, transaction } = await calimeroConnection.provider.sendTransaction(signedTransaction));
-
-            // TODO: Shouldn't throw more specific errors on failure?
-            if (status.Failure !== undefined) {
-                throw new Error(
-                    `Transaction failure for transaction hash: ${transaction.hash}, receiver_id: ${transaction.receiver_id} .
-                    `);
             }
             transactionHashes.push({
                 hash: transaction.hash,

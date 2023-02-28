@@ -9,6 +9,7 @@ import LoadingDots from '../../common/loader/LoadingDots';
 import Container from '../../common/styled/Container.css';
 import DepositNearBanner from '../../wallet/DepositNearBanner';
 import ConnectWithApplication from './ConnectWithApplication';
+import ConnectWithPrivateShard from './ConnectWithPrivateShard';
 import LoginStyle from './style/LoginStyle.css';
 
 export default ({
@@ -24,11 +25,12 @@ export default ({
     appReferrer,
     contractIdUrl,
     failureAndSuccessUrlsAreValid,
-    accountExists
+    accountExists,
+    customRPCUrl
 }) => (
     <Container className='small-centered border'>
         <LoginStyle className={loginAccessType === LOGIN_ACCESS_TYPES.FULL_ACCESS ? 'full-access' : ''}>
-            <h3><Translate id='login.v2.connectWithNear.title' /></h3>
+            <h3><Translate id={customRPCUrl ? 'login.v2.connectWithNear.privateShardTitle' : 'login.v2.connectWithNear.title' } /></h3>
             <div className='desc'>
                 <Translate>
                     {({ translate }) => (
@@ -39,10 +41,17 @@ export default ({
                     )}
                 </Translate>
             </div>
-            <ConnectWithApplication
-                appReferrer={appReferrer}
-                contractIdUrl={contractIdUrl}
-            />
+            {customRPCUrl ? (
+                <ConnectWithPrivateShard
+                    customRPCUrl={customRPCUrl}
+                />
+            ) : (
+                <ConnectWithApplication
+                    appReferrer={appReferrer}
+                    contractIdUrl={contractIdUrl}
+                />
+            )}
+            
             <LoadingDots />
             <AccountSelector
                 signedInAccountId={signedInAccountId}

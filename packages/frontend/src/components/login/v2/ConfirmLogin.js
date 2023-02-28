@@ -8,6 +8,7 @@ import FormButtonGroup from '../../common/FormButtonGroup';
 import Container from '../../common/styled/Container.css';
 import SafeTranslate from '../../SafeTranslate';
 import SwapGraphic from '../../svg/SwapGraphic';
+import ConnectWithPrivateShard from './ConnectWithPrivateShard';
 import GrantFullAccessModal from './GrantFullAccessModal';
 import NetworkFeeAllowance from './NetworkFeeAllowance';
 import PermissionItem from './PermissionItem';
@@ -22,7 +23,8 @@ export default ({
     contractId,
     publicKey,
     contractIdUrl,
-    successUrlIsValid
+    successUrlIsValid,
+    customRpcUrl
 }) => {
     const [loggingIn, setLoggingIn] = useState(false);
     const [showGrantFullAccessModal, setShowGrantFullAccessModal] = useState(false);
@@ -59,12 +61,17 @@ export default ({
                             )}
                         </Translate>
                     </div>
+                    {   customRpcUrl &&  (
+                        <div className='desc'>
+                            <ConnectWithPrivateShard customRPCUrl={customRpcUrl} />
+                        </div>
+                    )}
                     {loginAccessType === LOGIN_ACCESS_TYPES.LIMITED_ACCESS
                         ? <LimitedAccessUI />
                         : <FullAccessUI />
                     }
-                    {publicKey && loginAccessType === LOGIN_ACCESS_TYPES.LIMITED_ACCESS &&
-                        <NetworkFeeAllowance contractId={contractId} contractIdUrl={contractIdUrl}/>
+                    {publicKey && loginAccessType === LOGIN_ACCESS_TYPES.LIMITED_ACCESS && !customRpcUrl &&
+                        <NetworkFeeAllowance contractId={contractId} contractIdUrl={contractIdUrl} isPrivateShard={!!customRpcUrl}/>
                     }
                     <FormButtonGroup>
                         <FormButton
