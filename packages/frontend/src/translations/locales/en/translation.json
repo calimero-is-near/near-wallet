@@ -777,7 +777,8 @@
                 "desc": "An application is requesting <b>${accessType}</b> to your NEAR account. Select the account you wish to connect.",
                 "fullAccess": "full access",
                 "limitedAccess": "limited access",
-                "title": "Connect with NEAR"
+                "title": "Connect with NEAR",
+                "privateShardTitle": "Connect with Calimero Shard"
             }
         }
     },

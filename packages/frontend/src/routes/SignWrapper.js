@@ -10,7 +10,7 @@ import SignTransactionDetailsWrapper from '../components/sign/v2/SignTransaction
 import SignTransactionSummaryWrapper from '../components/sign/v2/SignTransactionSummaryWrapper';
 import { Mixpanel } from '../mixpanel';
 import { switchAccount, redirectTo } from '../redux/actions/account';
-import { selectAccountId, selectAccountUrlPrivateShardId } from '../redux/slices/account';
+import { selectAccountId, selectAccountUrlPrivateShardRpc } from '../redux/slices/account';
 import { selectAvailableAccounts, selectAvailableAccountsIsLoading } from '../redux/slices/availableAccounts';
 import {
     handleSignTransactions,
@@ -56,7 +56,7 @@ const SignWrapper = ({ urlQuery }) => {
     const transactions = useSelector(selectSignTransactions);
     const accountId = useSelector(selectAccountId);
     const transactionBatchisValid = useSelector(selectSignTransactionsBatchIsValid);
-    const privateShardId = useSelector(selectAccountUrlPrivateShardId);
+    const customRPCUrl = useSelector(selectAccountUrlPrivateShardRpc);
 
     const isValidCallbackUrl = isUrlNotJavascriptProtocol(signCallbackUrl);
     const signerId = transactions.length && transactions[0].signerId;
@@ -112,7 +112,7 @@ const SignWrapper = ({ urlQuery }) => {
     };
 
     const handleCancelTransaction = async () => {
-        if (privateShardId) {
+        if (customRPCUrl) {
             const encounter = addQueryParams(signCallbackUrl, {
                 signMeta,
                 errorCode: encodeURIComponent('userRejected'),
@@ -201,8 +201,7 @@ const SignWrapper = ({ urlQuery }) => {
             onClickEditAccount={() => setCurrentDisplay(DISPLAY.ACCOUNT_SELECTION)}
             isSignerValid={isSignerValid}
             isValidCallbackUrl={isValidCallbackUrl}
-            customRPCUrl={privateShardId && customRPCUrl}
-            privateShardId={customRPCUrl && privateShardId}
+            customRPCUrl={customRPCUrl}
         />
     );
 };

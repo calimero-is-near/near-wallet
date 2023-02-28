@@ -58,7 +58,6 @@ export default ({
     isSignerValid,
     isValidCallbackUrl,
     customRPCUrl,
-    privateShardId
 }) => {
     const insufficientBalance = availableBalance && transferAmount && new BN(availableBalance).lt(new BN(transferAmount));
     return (
@@ -79,7 +78,7 @@ export default ({
                 sender={accountLocalStorageAccountId}
                 estimatedFees={estimatedFees}
                 availableBalance={availableBalance}
-                privateShardId={privateShardId}
+                isPrivateShard={!!customRPCUrl}
             />
             <FormButton
                 className='link'

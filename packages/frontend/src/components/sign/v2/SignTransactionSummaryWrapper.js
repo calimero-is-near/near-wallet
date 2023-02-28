@@ -20,7 +20,6 @@ export default ({
     isSignerValid,
     isValidCallbackUrl,
     customRPCUrl,
-    privateShardId,
 }) => {
     const accountLocalStorageAccountId = useSelector(selectAccountLocalStorageAccountId);
     const accountUrlReferrer = useSelector(selectAccountUrlReferrer);
@@ -41,7 +40,6 @@ export default ({
             isSignerValid={isSignerValid}
             isValidCallbackUrl={isValidCallbackUrl}
             customRPCUrl={customRPCUrl}
-            privateShardId={privateShardId}
         />
     );
 };
