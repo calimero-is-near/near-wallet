@@ -4,9 +4,9 @@ import cloneDeep from 'lodash.clonedeep';
 import { createSelector } from 'reselect';
 
 import { Mixpanel } from '../../../mixpanel';
-import { wallet } from '../../../utils/wallet';
+import Wallet, { wallet } from '../../../utils/wallet';
 import { showCustomAlert } from '../../actions/status';
-import { selectAccountId, selectAccountUrlPrivateShardRpc, selectAccountUrlPrivateShardToken } from '../account';
+import { selectAccountId, selectAccountUrlPrivateShard } from '../account';
 
 const SLICE_NAME = 'sign';
 
@@ -31,8 +31,7 @@ export const handleSignTransactions = createAsyncThunk(
         const { dispatch, getState } = thunkAPI;
         let transactionsHashes;
         const retryingTx = !!selectSignRetryTransactions(getState()).length;
-        const privateShardRpc = selectAccountUrlPrivateShardRpc(getState());
-        const privateShardApiToken = selectAccountUrlPrivateShardToken(getState());
+        const shardInfo = selectAccountUrlPrivateShard(getState());
 
         const mixpanelName = `SIGN${retryingTx ? ' - RETRYRETRY WITH INCREASED GAS' : ''}`;
         await Mixpanel.withTracking(mixpanelName,
@@ -47,7 +46,8 @@ export const handleSignTransactions = createAsyncThunk(
                 const accountId = selectAccountId(getState());
 
                 try {
-                    transactionsHashes = await wallet.signAndSendTransactions(transactions, accountId, privateShardRpc, privateShardApiToken);
+                    const signingWallet = shardInfo ? new Wallet(shardInfo) : wallet;
+                    transactionsHashes = await signingWallet.signAndSendTransactions(transactions, accountId);
                     dispatch(updateSuccessHashes(transactionsHashes));
                 } catch (error) {
                     if (error.message.includes('TotalPrepaidGasExceeded')) {

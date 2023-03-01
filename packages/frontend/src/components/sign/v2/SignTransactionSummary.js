@@ -57,14 +57,14 @@ export default ({
     submittingTransaction,
     isSignerValid,
     isValidCallbackUrl,
-    customRPCUrl,
+    privateShardInfo,
 }) => {
     const insufficientBalance = availableBalance && transferAmount && new BN(availableBalance).lt(new BN(transferAmount));
     return (
         <StyledContainer className='small-centered border'>
             <h3><Translate id='sign.approveTransaction' /></h3>
-            {customRPCUrl
-                ? <ConnectWithPrivateShard customRPCUrl={customRPCUrl}/>
+            {privateShardInfo
+                ? <ConnectWithPrivateShard privateShardInfo={privateShardInfo}/>
                 : <ConnectWithApplication appReferrer={accountUrlReferrer}/>
             }
             {insufficientBalance && (
@@ -78,7 +78,7 @@ export default ({
                 sender={accountLocalStorageAccountId}
                 estimatedFees={estimatedFees}
                 availableBalance={availableBalance}
-                isPrivateShard={!!customRPCUrl}
+                privateShardInfo={privateShardInfo}
             />
             <FormButton
                 className='link'

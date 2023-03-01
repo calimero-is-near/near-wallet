@@ -9,7 +9,7 @@ import SelectAccountLoginWrapper from '../components/login/v2/SelectAccountLogin
 import CONFIG from '../config';
 import { Mixpanel } from '../mixpanel/index';
 import {
-    selectAccountLocalStorageAccountId, selectAccountUrlPrivateShardRpc
+    selectAccountLocalStorageAccountId, selectAccountUrlPrivateShard
 } from '../redux/slices/account';
 import { isUrlNotJavascriptProtocol } from '../utils/helper-api';
 
@@ -32,7 +32,7 @@ const LoginWrapper = () => {
     const contractIdUrl = `${CONFIG.EXPLORER_URL}/accounts/${contractId}`;
 
     const accountLocalStorageAccountId = useSelector(selectAccountLocalStorageAccountId);
-    const isPrivateShard = useSelector(selectAccountUrlPrivateShardRpc) !== null;
+    const isPrivateShard = !!useSelector(selectAccountUrlPrivateShard);
 
     let requestingFullAccess = !contractId || (publicKey && contractId?.endsWith(`.${CONFIG.LOCKUP_ACCOUNT_ID_SUFFIX}`)) || contractId === accountLocalStorageAccountId;
     const requestAccountIdOnly = !publicKey && !contractId;
@@ -64,7 +64,6 @@ const LoginWrapper = () => {
                 onClickCancel={() => setConfirmLogin(false)}
                 publicKey={publicKey}
                 successUrl={successUrl}
-                isPrivateShard={isPrivateShard}
             />
         );
     }

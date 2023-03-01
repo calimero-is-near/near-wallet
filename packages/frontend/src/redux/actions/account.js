@@ -16,7 +16,7 @@ import {
     clearState
 } from '../../utils/sessionStorage';
 import { TwoFactor } from '../../utils/twoFactor';
-import {
+import Wallet, {
     wallet,
     WALLET_CREATE_NEW_ACCOUNT_URL,
     WALLET_CREATE_NEW_ACCOUNT_FLOW_URLS,
@@ -44,13 +44,11 @@ import {
     selectAccountUrlMeta,
     selectAccountUrlMethodNames,
     selectAccountUrlPublicKey,
-    selectAccountUrlPrivateShardId,
+    selectAccountUrlPrivateShard,
     selectAccountUrlRedirectUrl,
     selectAccountUrlSuccessUrl,
     selectAccountUrlTitle,
-    selectAccountUrlTransactions,
-    selectAccountUrlPrivateShardToken,
-    selectAccountUrlPrivateShardRpc
+    selectAccountUrlTransactions
 } from '../slices/account';
 import { createAccountWithSeedPhrase } from '../slices/account/createAccountThunks';
 import { selectAllAccountsHasLockup } from '../slices/allAccounts';
@@ -157,9 +155,10 @@ export const handleRefreshUrl = (prevRouter) => (dispatch, getState) => {
     }
 };
 
-const checkContractId = (isPrivateShardContract = false) => async (dispatch, getState) => {
+const checkContractId = () => async (dispatch, getState) => {
     const contractId = selectAccountUrlContractId(getState());
     const failureUrl = selectAccountUrlFailureUrl(getState());
+    const shardInfo = selectAccountUrlPrivateShard(getState());
 
     if (contractId) {
         const redirectIncorrectContractId = () => {
@@ -173,7 +172,7 @@ const checkContractId = (isPrivateShardContract = false) => async (dispatch, get
         }
 
         try {
-            const getAccount = isPrivateShardContract ? wallet.getAccountBasic :  wallet.getPrivateShardAccountBasic;
+            const getAccount = shardInfo ? new Wallet(shardInfo).getAccountBasic : wallet.getAccountBasic;
             await getAccount(contractId).state();
         } catch (error) {
             if (error.message.indexOf('does not exist while viewing') !== -1) {
@@ -210,15 +209,13 @@ export const allowLogin = () => async (dispatch, getState) => {
     const methodNames = selectAccountUrlMethodNames(getState());
     const title = selectAccountUrlTitle(getState());
     const successUrl = selectAccountUrlSuccessUrl(getState());
-    const shardId = selectAccountUrlPrivateShardId(getState());
-    const shardRpc = selectAccountUrlPrivateShardRpc(getState());
-    const shardApiToken = selectAccountUrlPrivateShardToken(getState());
 
-    const addAccessKeyAction = shardId ? addShardAccessKey : addAccessKey;
+    const shardInfo = selectAccountUrlPrivateShard(getState());
+    const addAccessKeyAction = shardInfo ? addShardAccessKey : addAccessKey;
 
     if (successUrl) {
         if (publicKey) {
-            await dispatch(withAlert(addAccessKeyAction(wallet.accountId, contractId, publicKey, false, methodNames, shardRpc, shardApiToken), { onlyError: true }));
+            await dispatch(withAlert(addAccessKeyAction(wallet.accountId, contractId, publicKey, false, methodNames, shardInfo), { onlyError: true }));
         }
         const availableKeys = await wallet.getAvailableKeys();
 
@@ -233,7 +230,7 @@ export const allowLogin = () => async (dispatch, getState) => {
             window.location = parsedUrl.href;
         }
     } else {
-        await dispatch(withAlert(addAccessKeyAction(wallet.accountId, contractId, publicKey, false, methodNames, shardRpc, shardApiToken), { data: { title } }));
+        await dispatch(withAlert(addAccessKeyAction(wallet.accountId, contractId, publicKey, false, methodNames, shardInfo), { data: { title } }));
         dispatch(redirectTo('/authorized-apps', { globalAlertPreventClear: true }));
     }
 };
@@ -523,12 +520,13 @@ export const {
         () => showAlert()
     ],
     ADD_SHARD_ACCESS_KEY: [
-        async (accountId, contractId, publicKey, fullAccess = false, methodNames = '', shardRpc, shardApiToken) => {
+        async (accountId, contractId, publicKey, fullAccess = false, methodNames = '', shardInfo) => {
             try {
+                console.log('addShardAccessKey', accountId, contractId, publicKey, fullAccess, methodNames, shardInfo);
                 const account = await wallet.getAccount(accountId);
                 const signature = await wallet.signatureFor(account);
                 await syncPrivateShardAccount({ accountId, publicKey, signature });
-                await wallet.addShardAccessKey(accountId, contractId, publicKey, fullAccess, methodNames, shardRpc, shardApiToken);
+                await new Wallet(shardInfo).addAccessKey(accountId, contractId, publicKey, fullAccess, methodNames);
             } catch (error) {
                 throw new WalletError(error, 'addAccessKeyToPrivateShard.errorPrivateShard');
             }

@@ -70,8 +70,8 @@ export const selectAccountUrlMeta = createSelector(selectAccountUrl, (url) => ur
 
 export const selectAccountUrlMessage = createSelector(selectAccountUrl, (url) => url.message);
 
-export const selectAccountUrlPrivateShardId = createSelector(selectAccountUrl, (url) => url.calimeroShardId);
-
-export const selectAccountUrlPrivateShardRpc = createSelector(selectAccountUrl, (url) => url.calimeroRPCEndpoint);
-
-export const selectAccountUrlPrivateShardToken = createSelector(selectAccountUrl, (url) => url.calimeroAuthToken);
+export const selectAccountUrlPrivateShard = createSelector(selectAccountUrl, (url) => url.calimeroShardId && url.calimeroRPCEndpoint ? {
+    shardId: url.calimeroShardId,
+    shardRpc: url.calimeroRPCEndpoint,
+    shardApiToken: url.calimeroAuthToken
+}: undefined);

@@ -99,7 +99,7 @@ export default ({
     onClickGoBack,
     transactions,
     signGasFee,
-    isPrivateShard = false,
+    privateShardInfo
 }) => {
     return (
         <StyledContainer className='small-centered border'>
@@ -109,7 +109,7 @@ export default ({
             </div>
             <div className='network-fees'>
                 <div className='title'><Translate id='sign.networkFees' /></div>
-                {isPrivateShard ? (
+                {!privateShardInfo ? (
                     <div className='entry'>No fees</div>
                 ) : (
                     <>

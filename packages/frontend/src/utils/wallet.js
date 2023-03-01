@@ -106,7 +106,7 @@ export async function getKeyMeta(publicKey) {
 }
 
 export default class Wallet {
-    constructor() {
+    constructor(rpcInfo = null) {
         this.keyStore = new nearApiJs.keyStores.BrowserLocalStorageKeyStore(
             window.localStorage,
             'nearlib:keystore:'
@@ -153,11 +153,29 @@ export default class Wallet {
                 return inMemorySigner.signMessage(message, accountId, networkId);
             }
         };
-        this.connection = nearApiJs.Connection.fromConfig({
-            networkId: CONFIG.NETWORK_ID,
-            provider: { type: 'JsonRpcProvider', args: { url: CONFIG.NODE_URL + '/' } },
-            signer: this.signer
-        });
+        if (rpcInfo) {
+            console.log(1);
+            const args = { url: rpcInfo.shardRpc + '/' };
+            if (rpcInfo.shardApiToken) {
+                args.headers = {
+                    'x-api-key' : rpcInfo.shardApiToken
+                };
+            };
+            this.connection = nearApiJs.Connection.fromConfig({
+                networkId: CONFIG.NETWORK_ID,
+                provider: new JsonRpcProvider({ type: 'JsonRpcProvider', ...args }),
+                signer: this.signer,
+            });
+            this.shardId = rpcInfo.shardId;
+        } else {
+            console.log(2);
+            this.connection = nearApiJs.Connection.fromConfig({
+                networkId: CONFIG.NETWORK_ID,
+                provider: { type: 'JsonRpcProvider', args: { url: CONFIG.NODE_URL + '/' } },
+                signer: this.signer
+            });
+            
+        }
         this.getAccountsLocalStorage();
         this.accountId = localStorage.getItem(KEY_ACTIVE_ACCOUNT_ID) || '';
     }
@@ -701,55 +719,6 @@ export default class Wallet {
                 );
             }
         } catch (e) {
-            if (e.type === 'AddKeyAlreadyExists') {
-                return true;
-            }
-            throw e;
-        }
-    }
-
-    _getPrivateShardWallet = (privateShardRpc, privateShardApiToken) => {
-        const args = { url: privateShardRpc + '/' };
-        console.log(privateShardRpc);
-        if (privateShardApiToken) {
-            args.headers = {
-                'x-api-key' : privateShardApiToken
-            };
-        };
-        const connection = nearApiJs.Connection.fromConfig({
-            networkId: CONFIG.NETWORK_ID,
-            provider: new JsonRpcProvider({ type: 'JsonRpcProvider', ...args }),
-            signer: this.signer,
-        });
-        const privateShardWallet = new Wallet();
-        privateShardWallet.connection = connection;
-        return privateShardWallet;
-    }
-
-    async addShardAccessKey(accountId, contractId, publicKey, fullAccess = false, methodNames = '', shardRpc, shardApiToken) {
-        const wallet = this._getPrivateShardWallet(shardRpc, shardApiToken);
-        const account =  await wallet.getAccount(accountId);
-        // const has2fa = await TwoFactor.has2faEnabled(account);
-        // console.log('key being added to 2fa account ?', has2fa, account);
-        try {
-            console.log('adding key', publicKey.toString(), 'to', accountId, 'for', contractId, 'with methods', methodNames);
-            // TODO: Why not always pass `fullAccess` explicitly when it's desired?
-            // TODO: Alternatively require passing MULTISIG_CHANGE_METHODS from caller as `methodNames`
-            if (fullAccess || (accountId === contractId && !methodNames.length)) {
-                console.log('adding full access key', publicKey.toString());
-                return await account.addKey(publicKey);
-            } else {
-                // const isMultisig = !methodNames.length && accountId === contractId;
-                // const methodNames = isMultisig ? MULTISIG_CHANGE_METHODS : methodNames;
-                return await account.addKey(
-                    publicKey.toString(),
-                    contractId,
-                    methodNames,
-                    CONFIG.ACCESS_KEY_FUNDING_AMOUNT
-                );
-            }
-        } catch (e) {
-            console.error(e);
             if (e.type === 'AddKeyAlreadyExists') {
                 return true;
             }
@@ -1337,13 +1306,8 @@ export default class Wallet {
         }
     }
 
-    async signAndSendTransactions(transactions, accountId = this.accountId, privateShardRpc = null, privateShardToken = null) {
-        let account;
-        if (privateShardRpc) {
-            account = await this._getPrivateShardWallet(privateShardRpc, privateShardToken).getAccount(accountId);
-        } else {
-            account = await this.getAccount(accountId);
-        }
+    async signAndSendTransactions(transactions, accountId = this.accountId) {
+        const account = await this.getAccount(accountId);
 
         const transactionHashes = [];
         for (let { receiverId, nonce, blockHash, actions } of transactions) {

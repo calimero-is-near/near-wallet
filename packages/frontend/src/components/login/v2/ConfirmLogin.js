@@ -6,6 +6,7 @@ import AlertBanner from '../../common/AlertBanner';
 import FormButton from '../../common/FormButton';
 import FormButtonGroup from '../../common/FormButtonGroup';
 import Container from '../../common/styled/Container.css';
+import Tooltip from '../../common/Tooltip';
 import SafeTranslate from '../../SafeTranslate';
 import SwapGraphic from '../../svg/SwapGraphic';
 import ConnectWithPrivateShard from './ConnectWithPrivateShard';
@@ -24,7 +25,7 @@ export default ({
     publicKey,
     contractIdUrl,
     successUrlIsValid,
-    customRpcUrl
+    privateShardInfo
 }) => {
     const [loggingIn, setLoggingIn] = useState(false);
     const [showGrantFullAccessModal, setShowGrantFullAccessModal] = useState(false);
@@ -61,17 +62,17 @@ export default ({
                             )}
                         </Translate>
                     </div>
-                    {   customRpcUrl &&  (
+                    {   privateShardInfo &&  (
                         <div className='desc'>
-                            <ConnectWithPrivateShard customRPCUrl={customRpcUrl} />
+                            <ConnectWithPrivateShard privateShardInfo={privateShardInfo} />
                         </div>
                     )}
                     {loginAccessType === LOGIN_ACCESS_TYPES.LIMITED_ACCESS
                         ? <LimitedAccessUI />
                         : <FullAccessUI />
                     }
-                    {publicKey && loginAccessType === LOGIN_ACCESS_TYPES.LIMITED_ACCESS && !customRpcUrl &&
-                        <NetworkFeeAllowance contractId={contractId} contractIdUrl={contractIdUrl} isPrivateShard={!!customRpcUrl}/>
+                    {publicKey && loginAccessType === LOGIN_ACCESS_TYPES.LIMITED_ACCESS && !privateShardInfo &&
+                        <NetworkFeeAllowance contractId={contractId} contractIdUrl={contractIdUrl} />
                     }
                     <FormButtonGroup>
                         <FormButton

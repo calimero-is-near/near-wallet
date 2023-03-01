@@ -101,35 +101,33 @@ export default ({
     estimatedFees,
     availableBalance,
     fromLabelId,
-    isPrivateShard = false,
+    privateShardInfo,
 }) => {
     const isTransferTransaction = new BN(transferAmount).gt(new BN(0));
     return (
         <StyledContainer className='transfer-amount brs-8 bsw-l'>
-            {isPrivateShard && (
+            {privateShardInfo && (
                 <div className='account shard'>
                     <div className='left'>
                         <Translate id='transfer.privateShard' />
                         <Tooltip translate='transfer.tooltip' />
                     </div>
                     <div className='right'>
-                        {"needasmoke-calimero-testnet"}
+                        {privateShardInfo.shardId}
                     </div>
                 </div>
             )}
             {isTransferTransaction && (
                 <Balance
                     amount={transferAmount}
-                    showSymbolNEAR={!isPrivateShard}
-                    showGenericSymbol={isPrivateShard}
-                    showBalanceInUSD={!isPrivateShard}
+                    showGenericSymbol={!!privateShardInfo}
                 />
             )}
             <div className={`account from ${!isTransferTransaction ? 'no-border' : ''}`}>
                 <Translate id={fromLabelId || 'transfer.from'} />
                 <div className='right'>
                     <div className='account-id'>{sender}</div>
-                    {!isPrivateShard && (
+                    {!privateShardInfo && (
                         <Balance
                             amount={availableBalance}
                             showBalanceInUSD={false}
@@ -144,9 +142,7 @@ export default ({
                 </div>
                 <div className='right'>
                     <Balance
-                        amount={isPrivateShard ? 0 : estimatedFees}
-                        showSymbolNEAR={!isPrivateShard}
-                        showBalanceInNEAR={!isPrivateShard}
+                        amount={privateShardInfo ? 0 : estimatedFees}
                     />
                 </div>
             </div>

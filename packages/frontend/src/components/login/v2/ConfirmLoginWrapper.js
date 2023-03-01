@@ -5,7 +5,7 @@ import { Mixpanel } from '../../../mixpanel/index';
 import { allowLogin } from '../../../redux/actions/account';
 import {
     selectAccountLocalStorageAccountId,
-    selectAccountUrlPrivateShardRpc,
+    selectAccountUrlPrivateShard,
     selectAccountUrlReferrer
 } from '../../../redux/slices/account';
 import { isUrlNotJavascriptProtocol } from '../../../utils/helper-api';
@@ -24,7 +24,7 @@ export default ({
     const accountLocalStorageAccountId = useSelector(selectAccountLocalStorageAccountId);
     const accountUrlReferrer = useSelector(selectAccountUrlReferrer);
     const successUrlIsValid = isUrlNotJavascriptProtocol(successUrl);
-    const privateShardRpc = useSelector(selectAccountUrlPrivateShardRpc);
+    const privateShardInfo = useSelector(selectAccountUrlPrivateShard);
 
     return (
         <ConfirmLogin
@@ -37,7 +37,7 @@ export default ({
             onClickConnect={() => Mixpanel.withTracking('LOGIN', () => dispatch(allowLogin()))}
             contractIdUrl={contractIdUrl}
             successUrlIsValid={successUrlIsValid}
-            customRpcUrl={privateShardRpc}
+            privateShardInfo={privateShardInfo}
         />
     );
 };

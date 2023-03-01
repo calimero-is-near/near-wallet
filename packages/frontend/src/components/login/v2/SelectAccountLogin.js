@@ -26,24 +26,16 @@ export default ({
     contractIdUrl,
     failureAndSuccessUrlsAreValid,
     accountExists,
-    customRPCUrl
+    privateShardInfo
 }) => (
     <Container className='small-centered border'>
         <LoginStyle className={loginAccessType === LOGIN_ACCESS_TYPES.FULL_ACCESS ? 'full-access' : ''}>
-            <h3><Translate id={customRPCUrl ? 'login.v2.connectWithNear.privateShardTitle' : 'login.v2.connectWithNear.title' } /></h3>
-            <div className='desc'>
-                <Translate>
-                    {({ translate }) => (
-                        <Translate
-                            id='login.v2.connectWithNear.desc'
-                            data={{ accessType: translate(`login.v2.connectWithNear.${loginAccessType}`) }}
-                        />
-                    )}
-                </Translate>
-            </div>
-            {customRPCUrl ? (
+            <LoginHeader privateShardInfo={privateShardInfo} loginAccessType={loginAccessType}>
+
+            </LoginHeader>
+            {privateShardInfo ? (
                 <ConnectWithPrivateShard
-                    customRPCUrl={customRPCUrl}
+                    privateShardInfo={privateShardInfo}
                 />
             ) : (
                 <ConnectWithApplication
@@ -81,3 +73,22 @@ export default ({
         </LoginStyle>
     </Container>
 );
+
+const LoginHeader = ({loginAccessType, privateShardInfo}) => {
+    const titleId = !!privateShardInfo ? 'login.v2.connectWithNear.privateShardTitle' : 'login.v2.connectWithNear.title';
+    const descId = !!privateShardInfo ? 'login.v2.connectWithNear.privateShardDesc' : 'login.v2.connectWithNear.desc';
+    return (
+        <>
+            <h3><Translate id={titleId} /></h3>
+            <div className='desc'>
+                <Translate>
+                    {({ translate }) => (
+                        <Translate
+                            id={descId}
+                            data={{ accessType: translate(`login.v2.connectWithNear.${loginAccessType}`), shardId: privateShardInfo?.shardId }} />
+                    )}
+                </Translate>
+            </div>
+        </>
+    );
+};
