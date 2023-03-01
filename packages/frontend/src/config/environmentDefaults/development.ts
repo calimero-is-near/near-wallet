@@ -49,5 +49,6 @@ export default {
     REF_FINANCE_CONTRACT: 'ref-finance-101.testnet',
     USN_CONTRACT: 'usdn.testnet',
     USDT_CONTRACT: 'usdt.fakes.testnet',
-    HAPI_PROTOCOL_ADDRESS: 'proxy.contracts.sergei24.testnet'
+    HAPI_PROTOCOL_ADDRESS: 'proxy.contracts.sergei24.testnet',
+    CALIMERO_URL: 'https://app.calimero.network'
 };
