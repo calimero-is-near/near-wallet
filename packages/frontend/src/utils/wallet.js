@@ -972,7 +972,7 @@ export default class Wallet {
             CONFIG.NETWORK_ID
         );
         const blockNumberSignature = Buffer.from(signed.signature).toString('base64');
-        return { blockNumber, blockNumberSignature };
+        return { blockNumber, blockNumberSignature, publicKey: signed.publicKey.toString() };
     }
 
     async postSignedJson(path, options) {

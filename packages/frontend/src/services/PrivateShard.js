@@ -2,10 +2,9 @@ import createError from 'http-errors';
 
 import CONFIG from '../config';
 
-export async function syncPrivateShardAccount({ accountId, publicKey, signature, shardInfo }) {
+export async function syncPrivateShardAccount({ accountId, signature, shardInfo }) {
     const postData = {
         accountId,
-        publicKey,
         signature,
         shardId: shardInfo.shardId,
     };

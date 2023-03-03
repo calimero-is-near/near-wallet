@@ -212,7 +212,9 @@ export const allowLogin = () => async (dispatch, getState) => {
 
     const shardInfo = selectAccountUrlPrivateShard(getState());
     const addAccessKeyAction = shardInfo ? addShardAccessKey : addAccessKey;
-
+    if (shardInfo) {
+        await dispatch(syncShardAccount(wallet.accountId, shardInfo));
+    }
     if (successUrl) {
         if (publicKey) {
             await dispatch(withAlert(addAccessKeyAction(wallet.accountId, contractId, publicKey, false, methodNames, shardInfo), { onlyError: true }));
@@ -498,7 +500,8 @@ export const finishAccountSetup = () => async (dispatch, getState) => {
 export const {
     addAccessKey,
     addAccessKeySeedPhrase,
-    addShardAccessKey
+    addShardAccessKey,
+    syncShardAccount
 } = createActions({
     ADD_ACCESS_KEY: [
         wallet.addAccessKey.bind(wallet),
@@ -522,16 +525,27 @@ export const {
     ADD_SHARD_ACCESS_KEY: [
         async (accountId, contractId, publicKey, fullAccess = false, methodNames = '', shardInfo) => {
             try {
-                const account = await wallet.getAccount(accountId);
-                const signature = await wallet.signatureFor(account);
-                await syncPrivateShardAccount({ accountId, publicKey, signature, shardInfo });
                 await new Wallet(shardInfo).addAccessKey(accountId, contractId, publicKey, fullAccess, methodNames);
             } catch (error) {
                 throw new WalletError(error, 'addAccessKeyToPrivateShard.errorPrivateShard');
             }
         },
         (title) => showAlert({ title })
-    ]
+    ],
+    SYNC_SHARD_ACCOUNT: [
+        async (accountId, shardInfo) => {
+            console.log('syncAccount', accountId, shardInfo);
+            try {
+                const account = await wallet.getAccount(accountId);
+                const signature = await wallet.signatureFor(account);
+                console.log('signature', signature);
+                await syncPrivateShardAccount({ accountId, signature, shardInfo });
+            } catch (error) {
+                throw new WalletError(error, 'syncAccount.error');
+            }
+        },
+        (title) => showAlert({ title })
+    ],
 });
 
 export const { recoverAccountSeedPhrase } = createActions({
