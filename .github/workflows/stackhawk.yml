@@ -55,14 +55,14 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 12.x
+          node-version: 18.x
           cache: 'yarn'
       - run: yarn install --frozen-lockfile
       - run: yarn lint
       - run: yarn test
-      - run: yarn bundle --outDir=dist/${{ inputs.environment }}
+      - run: yarn bundle --distDir=dist/${{ inputs.environment }}
       - run: yarn start &
-        
+
       - name: Run HawkScan
         uses: stackhawk/hawkscan-action@v2.0.0
         continue-on-error: true                   # ✏️ Set to false to break your build on scan errors

@@ -1,9 +1,6 @@
+// eslint-disable-next-line import/named
+import { AnyAction, Store } from '@reduxjs/toolkit';
 import * as Sentry from '@sentry/browser';
-import { routerMiddleware } from 'connected-react-router';
-import { applyMiddleware, compose } from 'redux';
-import thunk from 'redux-thunk';
-
-const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
 /**
  * Lets you dispatch special actions with a { promise } field.
@@ -13,12 +10,12 @@ const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
  *
  * For convenience, `dispatch` will return the promise so the caller can wait.
  */
-const readyStatePromise = (store) => (next) => (action) => {
+export const readyStatePromise = (store: Store) => (next) => (action: AnyAction) => {
     if (!action.payload || !action.payload.then) {
         return next(action);
     }
 
-    function makeAction(ready, data) {
+    function makeAction(ready, data?: any) {
         const newAction = Object.assign({}, action);
         delete newAction.payload;
         return Object.assign(newAction, { ready }, data);
@@ -38,9 +35,3 @@ const readyStatePromise = (store) => (next) => (action) => {
         }
     );
 };
-
-export default (history) => composeEnhancers(
-    applyMiddleware(
-        routerMiddleware(history),
-        thunk,
-        readyStatePromise));

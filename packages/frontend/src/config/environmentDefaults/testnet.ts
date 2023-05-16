@@ -10,6 +10,7 @@ export default {
     EXPLORE_APPS_URL: 'https://awesomenear.com/',
     EXPLORE_DEFI_URL: 'https://awesomenear.com/categories/defi/',
     EXPLORER_URL: 'https://explorer.testnet.near.org',
+    GLEAP_FRONTEND_API_KEY: 'Pc07nwsDmsVoWYJJj9BgES87xE7RCW74',
     HIDE_SIGN_IN_WITH_LEDGER_ENTER_ACCOUNT_ID_MODAL: false,
     INDEXER_SERVICE_URL: 'https://testnet-api.kitwallet.app',
     LINKDROP_GAS: '100000000000000',
@@ -36,7 +37,8 @@ export default {
     NETWORK_ID: 'default',
     NODE_URL: 'https://rpc.testnet.near.org',
     REACT_APP_USE_TESTINGLOCKUP: false,
-    SENTRY_DSN: 'https://75d1dabd0ab646329fad8a3e7d6c761d@o398573.ingest.sentry.io/5254526',
+    SENTRY_DSN:
+        'https://75d1dabd0ab646329fad8a3e7d6c761d@o398573.ingest.sentry.io/5254526',
     SHOW_PRERELEASE_WARNING: false,
     SMS_BLACKLIST: ['CN', 'VN', 'TH'],
     STAKING_GAS_BASE: '25000000000000', // 25 Tgas
@@ -45,9 +47,9 @@ export default {
     FARMING_CLAIM_GAS: parseNearAmount('0.00000000015'),
     FARMING_CLAIM_YOCTO: '1',
     REF_FINANCE_API_ENDPOINT: 'https://testnet-indexer.ref-finance.com/',
-    TOKEN_BLACKLIST_ENDPOINT: 'https://testnet-api.mynearwallet.com/contract-helper/tokens/blacklist',
     REF_FINANCE_CONTRACT: 'ref-finance-101.testnet',
     USN_CONTRACT: 'usdn.testnet',
     USDT_CONTRACT: 'usdt.fakes.testnet',
-    HAPI_PROTOCOL_ADDRESS: 'proxy.contracts.sergei24.testnet'
+    HAPI_PROTOCOL_ADDRESS: 'proxy.contracts.sergei24.testnet',
+    CALIMERO_URL: 'https://app.calimero.network'
 };
