@@ -25,97 +25,136 @@ const initialState = {
     farmingValidators: {},
 };
 
-const stakingHandlers = handleActions({
-    [staking.getAccounts]: (state, { payload }) => ({
-        ...state,
-        accounts: payload,
-        accountsObj: {
-            accountId: payload[0]?.accountId,
-            lockupId: payload[1]?.accountId,
-        }
-    }),
-    [staking.updateAccount]: (state, { ready, error, payload }) => 
-        (!ready || error)
-            ? state
-            : ({
-                ...state,
-                accounts: state.accounts.map((account) => account.accountId === payload.accountId
-                    ? ({
-                        ...account,
-                        ...payload
-                    }) : account
-                )
-            }),
-    [staking.updateLockup]: (state, { ready, error, payload }) => 
-        (!ready || error)
-            ? state
-            : ({
-                ...state,
-                accounts: state.accounts.map((account) => account.accountId === payload.accountId
-                    ? ({
-                        ...account,
-                        ...payload
-                    }) : account
-                ),
-                lockupId: payload.accountId
-            }),
-    [staking.updateCurrent]: (state, { payload }) => ({
-        ...state,
-        currentAccount: payload.currentAccount
-    }),
-    [staking.getLockup]: (state, { ready, error, payload }) => 
-        (!ready || error)
-            ? state
-            : ({
-                ...state,
-                lockup: payload
-            }),
-    [staking.getValidators]: (state, { ready, error, payload }) =>
-        (!ready || error)
-            ? state
-            : ({
-                ...state,
-                allValidators: payload
-            }),
-    [getValidatorFarmData.pending]: (state, { meta: { arg: { validator } } }) => ({
-        ...state,
-        farmingValidators: {
-            ...state.farmingValidators,
-            [validator.accountId]: {
-                ...state.farmingValidators?.[validator.accountId],
-                loading: true
+const stakingHandlers = handleActions(
+    {
+        [staking.getAccounts]: (state, { payload }) => ({
+            ...state,
+            accounts: payload,
+            accountsObj: {
+                accountId: payload[0]?.accountId,
+                lockupId: payload[1]?.accountId,
             },
-        }
-    }),
-    [getValidatorFarmData.fulfilled]: (state, { payload }) => ({
-        ...state,
-        farmingValidators: {
-            ...state.farmingValidators,
-            [payload.validatorId]: {
-                ...payload.farmData,
-                farmRewards: {
-                    ...state.farmingValidators?.[payload.validatorId]
-                        ?.farmRewards,
-                    ...payload.farmData.farmRewards,
+        }),
+        [staking.updateAccount]: (state, { ready, error, payload }) =>
+            !ready || error
+                ? state
+                : {
+                      ...state,
+                      accounts: state.accounts.map((account) =>
+                          account.accountId === payload.accountId
+                              ? {
+                                    ...account,
+                                    ...payload,
+                                }
+                              : account
+                      ),
+                  },
+        [staking.updateLockup]: (state, { ready, error, payload }) =>
+            !ready || error
+                ? state
+                : {
+                      ...state,
+                      accounts: state.accounts.map((account) =>
+                          account.accountId === payload.accountId
+                              ? {
+                                    ...account,
+                                    ...payload,
+                                }
+                              : account
+                      ),
+                      lockupId: payload.accountId,
+                  },
+        [staking.updateCurrent]: (state, { payload }) => ({
+            ...state,
+            currentAccount: payload.currentAccount,
+        }),
+        [staking.getLockup]: (state, { ready, error, payload }) =>
+            !ready || error
+                ? state
+                : {
+                      ...state,
+                      lockup: payload,
+                  },
+        [staking.getValidators]: (state, { ready, error, payload }) =>
+            !ready || error
+                ? state
+                : {
+                      ...state,
+                      allValidators: payload,
+                  },
+        [getValidatorFarmData.pending]: (
+            state,
+            {
+                meta: {
+                    arg: { validator },
                 },
-                loading: false
-            },
-        }
-    }),
-    [getValidatorFarmData.rejected]: (state, { meta: { arg: { validator } } }) => ({
-        ...state,
-        farmingValidators: {
-            ...state.farmingValidators,
-            [validator.accountId]: {
-                ...state.farmingValidators?.[validator.accountId],
-                loading: false
-            },
-        }
-    }),
-    [clearAccountState]: () => initialState
-}, initialState);
-
-export default reduceReducers(
-    initialState,
-    stakingHandlers
+            }
+        ) => {
+            if (!validator) {
+                return {
+                    ...state,
+                };
+            }
+            return {
+                ...state,
+                farmingValidators: {
+                    ...state.farmingValidators,
+                    [validator.accountId]: {
+                        ...state.farmingValidators?.[validator.accountId],
+                        loading: true,
+                    },
+                },
+            };
+        },
+        [getValidatorFarmData.fulfilled]: (state, { payload }) => {
+            if (!payload) {
+                return {
+                    ...state,
+                };
+            }
+            return {
+                ...state,
+                farmingValidators: {
+                    ...state.farmingValidators,
+                    [payload.validatorId]: {
+                        ...payload.farmData,
+                        farmRewards: {
+                            ...state.farmingValidators?.[payload.validatorId]
+                                ?.farmRewards,
+                            ...payload.farmData.farmRewards,
+                        },
+                        loading: false,
+                    },
+                },
+            };
+        },
+        [getValidatorFarmData.rejected]: (
+            state,
+            {
+                meta: {
+                    arg: { validator },
+                },
+            }
+        ) => {
+            if (!validator) {
+                return {
+                    ...state,
+                };
+            }
+            return {
+                ...state,
+                farmingValidators: {
+                    ...state.farmingValidators,
+                    [validator.accountId]: {
+                        ...state.farmingValidators?.[validator.accountId],
+                        loading: false,
+                    },
+                },
+            };
+        },
+        [clearAccountState]: () => initialState,
+    },
+    initialState
 );
+
+export default reduceReducers(initialState, stakingHandlers);

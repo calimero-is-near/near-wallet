@@ -8,19 +8,24 @@ import styled from 'styled-components';
 import CONFIG from '../../config';
 import { Mixpanel } from '../../mixpanel/index';
 import {
-    checkNearDropBalance,
+    checkLinkdropInfo,
     checkNewAccount,
     redirectTo,
-    refreshAccount
+    refreshAccount,
 } from '../../redux/actions/account';
 import { clearLocalAlert } from '../../redux/actions/status';
-import { selectAccountSlice, selectActiveAccountIdIsImplicitAccount, selectAccountExists } from '../../redux/slices/account';
-import { selectStatusLocalAlert, selectStatusMainLoader } from '../../redux/slices/status';
+import {
+    selectAccountSlice,
+    selectActiveAccountIdIsImplicitAccount,
+    selectAccountExists,
+} from '../../redux/slices/account';
+import {
+    selectStatusLocalAlert,
+    selectStatusMainLoader,
+} from '../../redux/slices/status';
 import { selectNearTokenFiatValueUSD } from '../../redux/slices/tokenFiatValues';
 import isMobile from '../../utils/isMobile';
-import {
-    ENABLE_IDENTITY_VERIFIED_ACCOUNT
-} from '../../utils/wallet';
+import { ENABLE_IDENTITY_VERIFIED_ACCOUNT } from '../../utils/wallet';
 import AccountNote from '../common/AccountNote';
 import { getNearAndFiatValue } from '../common/balance/helpers';
 import FormButton from '../common/FormButton';
@@ -50,7 +55,7 @@ const StyledContainer = styled(Container)`
                 }
             }
             &.gray {
-                color: #72727A !important;
+                color: #72727a !important;
                 margin: 35px auto !important;
                 display: block !important;
             }
@@ -63,13 +68,13 @@ const StyledContainer = styled(Container)`
     }
     a {
         text-decoration: underline;
-        color: #72727A;
+        color: #72727a;
         :hover {
             text-decoration: none;
-            color: #72727A;
+            color: #72727a;
         }
     }
-    
+
     .alternatives-title {
         color: #24272a;
         text-align: center;
@@ -91,7 +96,7 @@ const StyledContainer = styled(Container)`
         }
     }
     .disclaimer {
-        color: #72727A;
+        color: #72727a;
         text-align: center;
         font-size: 12px;
         max-width: 350px;
@@ -110,34 +115,38 @@ class CreateAccount extends Component {
     state = {
         loader: false,
         accountId: '',
-        invalidNearDrop: null,
-        fundingAmount: null,
+        invalidLinkdrop: null,
+        linkdropKeyInfo: null,
         termsAccepted: false,
-        whereToBuy: false
-    }
+        whereToBuy: false,
+    };
 
     componentDidMount() {
         const { fundingContract, fundingKey } = this.props;
 
         if (fundingContract && fundingKey) {
-            this.handleCheckNearDropBalance();
+            this.handleCheckLinkdropInfo();
         }
     }
 
     componentWillUnmount = () => {
         this.props.clearLocalAlert();
-    }
+    };
 
-    handleCheckNearDropBalance = async () => {
-        const { fundingContract, fundingKey, checkNearDropBalance } = this.props;
-        await Mixpanel.withTracking('CA Check near drop balance',
+    handleCheckLinkdropInfo = async () => {
+        const { fundingContract, fundingKey, checkLinkdropInfo } = this.props;
+        await Mixpanel.withTracking(
+            'CA Check near drop balance',
             async () => {
-                const fundingAmount = await checkNearDropBalance(fundingContract, fundingKey);
-                this.setState({ fundingAmount });
+                const linkdropKeyInfo = await checkLinkdropInfo(
+                    fundingContract,
+                    fundingKey
+                );
+                this.setState({ linkdropKeyInfo });
             },
-            () => this.setState({ invalidNearDrop: true })
+            () => this.setState({ invalidLinkdrop: true })
         );
-    }
+    };
 
     handleChange = (value) => {
         if (value.length > 0) {
@@ -145,34 +154,34 @@ class CreateAccount extends Component {
         } else {
             this.setState({ accountId: value });
         }
-    }
+    };
 
     handleCreateAccount = async () => {
-        const { accountId, fundingAmount } = this.state;
-        const {
-            fundingContract, fundingKey,
-            fundingAccountId,
-        } = this.props;
+        const { accountId, linkdropKeyInfo } = this.state;
+        const { fundingContract, fundingKey, fundingAccountId } = this.props;
 
         this.setState({ loader: true });
 
         let queryString = '';
         if (fundingAccountId || fundingContract) {
-            const fundingOptions = fundingAccountId ? { fundingAccountId } : { fundingContract, fundingKey, fundingAmount };
-            queryString = `?fundingOptions=${encodeURIComponent(JSON.stringify(fundingOptions))}`;
+            const fundingOptions = fundingAccountId
+                ? { fundingAccountId }
+                : {
+                      fundingContract,
+                      fundingKey,
+                      fundingAmount: linkdropKeyInfo.yoctoNEAR,
+                  };
+            queryString = `?fundingOptions=${encodeURIComponent(
+                JSON.stringify(fundingOptions)
+            )}`;
         }
         Mixpanel.track('CA Click create account button');
         this.props.history.push(`/set-recovery/${accountId}${queryString}`);
-    }
+    };
 
     render() {
-        const {
-            loader,
-            accountId,
-            invalidNearDrop,
-            termsAccepted,
-            whereToBuy
-        } = this.state;
+        const { loader, accountId, invalidLinkdrop, termsAccepted, whereToBuy } =
+            this.state;
 
         const {
             localAlert,
@@ -185,31 +194,45 @@ class CreateAccount extends Component {
             nearTokenFiatValueUSD,
             locationSearch,
             activeAccountIdIsImplicit,
-            accountExists
+            accountExists,
         } = this.props;
 
         const isLinkDrop = fundingContract && fundingKey;
         const useLocalAlert = accountId.length > 0 ? localAlert : undefined;
-        const showTermsPage = CONFIG.IS_MAINNET && !isLinkDrop && !termsAccepted && !ENABLE_IDENTITY_VERIFIED_ACCOUNT;
-        const cannotCreateNewAccountWithZeroBalanceAccount = !isLinkDrop && accountExists === false;
+        const showTermsPage =
+            CONFIG.IS_MAINNET &&
+            !isLinkDrop &&
+            !termsAccepted &&
+            !ENABLE_IDENTITY_VERIFIED_ACCOUNT;
+        const cannotCreateNewAccountWithZeroBalanceAccount =
+            !isLinkDrop && accountExists === false;
 
         if (showTermsPage) {
             return (
                 <StyledContainer className='small-centered border'>
                     <FundNearIcon />
-                    <h1><Translate id='createAccount.termsPage.title' /></h1>
+                    <h1>
+                        <Translate id='createAccount.termsPage.title' />
+                    </h1>
                     <h2>
                         <SafeTranslate
                             id='createAccount.termsPage.descOne'
-                            data={{ amount: getNearAndFiatValue(CONFIG.MIN_BALANCE_TO_CREATE, nearTokenFiatValueUSD) }}
+                            data={{
+                                amount: getNearAndFiatValue(
+                                    CONFIG.MIN_BALANCE_TO_CREATE,
+                                    nearTokenFiatValueUSD
+                                ),
+                            }}
                         />
                     </h2>
-                    <h2><Translate id='createAccount.termsPage.descTwo' /></h2>
+                    <h2>
+                        <Translate id='createAccount.termsPage.descTwo' />
+                    </h2>
                     <FormButton
                         onClick={() => this.setState({ whereToBuy: true })}
                         color='blue'
                         className='link'
-                        trackingId="CA Click where to buy button"
+                        trackingId='CA Click where to buy button'
                     >
                         <Translate id='account.createImplicit.pre.whereToBuy.button' />
                     </FormButton>
@@ -218,7 +241,7 @@ class CreateAccount extends Component {
                             this.setState({ termsAccepted: true });
                             window.scrollTo(0, 0);
                         }}
-                        data-test-id="acceptTermsButton"
+                        data-test-id='acceptTermsButton'
                     >
                         <Translate id='createAccount.terms.agreeBtn' />
                     </FormButton>
@@ -242,13 +265,15 @@ class CreateAccount extends Component {
             );
         }
 
-        if (!invalidNearDrop) {
+        if (!invalidLinkdrop) {
             return (
                 <StyledContainer className='small-centered border'>
-                    <form onSubmit={(e) => {
-                        this.handleCreateAccount();
-                        e.preventDefault();
-                    }} autoComplete='off'
+                    <form
+                        onSubmit={(e) => {
+                            this.handleCreateAccount();
+                            e.preventDefault();
+                        }}
+                        autoComplete='off'
                     >
                         <h1>
                             <Translate
@@ -259,8 +284,12 @@ class CreateAccount extends Component {
                                 }
                             />
                         </h1>
-                        <h2><Translate id='createAccount.pageText' /></h2>
-                        <h4 className='small'><Translate id='createAccount.accountIdInput.title' /></h4>
+                        <h2>
+                            <Translate id='createAccount.pageText' />
+                        </h2>
+                        <h4 className='small'>
+                            <Translate id='createAccount.accountIdInput.title' />
+                        </h4>
                         <AccountFormAccountId
                             mainLoader={mainLoader}
                             handleChange={this.handleChange}
@@ -270,16 +299,24 @@ class CreateAccount extends Component {
                             localAlert={useLocalAlert}
                             accountId={accountId}
                             clearLocalAlert={clearLocalAlert}
-                            defaultAccountId={resetAccount && resetAccount.accountIdNotConfirmed.split('.')[0]}
+                            defaultAccountId={
+                                resetAccount &&
+                                resetAccount.accountIdNotConfirmed.split('.')[0]
+                            }
                             autoFocus={isMobile() ? false : true}
                         />
                         <AccountNote />
-                        {cannotCreateNewAccountWithZeroBalanceAccount && <DepositNearBanner />}
+                        {cannotCreateNewAccountWithZeroBalanceAccount && (
+                            <DepositNearBanner />
+                        )}
                         <FormButton
                             type='submit'
-                            disabled={!(localAlert && localAlert.success) || cannotCreateNewAccountWithZeroBalanceAccount}
+                            disabled={
+                                !(localAlert && localAlert.success) ||
+                                cannotCreateNewAccountWithZeroBalanceAccount
+                            }
                             sending={loader}
-                            data-test-id="reserveAccountIdButton"
+                            data-test-id='reserveAccountIdButton'
                         >
                             <Translate id='button.reserveMyAccountId' />
                         </FormButton>
@@ -288,12 +325,18 @@ class CreateAccount extends Component {
                                 <Translate id='createAccount.termsPage.disclaimer' />
                             </div>
                         )}
-                        <div className='alternatives-title'><Translate id='createAccount.alreadyHaveAnAccount' /></div>
-                        <div className='alternatives' onClick={() => {
-                            Mixpanel.track('IE Click import existing account button');
-                        }}
+                        <div className='alternatives-title'>
+                            <Translate id='createAccount.alreadyHaveAnAccount' />
+                        </div>
+                        <div
+                            className='alternatives'
+                            onClick={() => {
+                                Mixpanel.track('IE Click import existing account button');
+                            }}
                         >
-                            <Link to={`/recover-account${locationSearch}`}><Translate id='createAccount.recoverItHere' /></Link>
+                            <Link to={`/recover-account${locationSearch}`}>
+                                <Translate id='createAccount.recoverItHere' />
+                            </Link>
                         </div>
                     </form>
                 </StyledContainer>
@@ -302,9 +345,15 @@ class CreateAccount extends Component {
             return (
                 <StyledContainer className='small-centered invalid-link'>
                     <BrokenLinkIcon />
-                    <h1><Translate id='createAccount.invalidLinkDrop.title' /></h1>
-                    <h2><Translate id='createAccount.invalidLinkDrop.one' /></h2>
-                    <h2><Translate id='createAccount.invalidLinkDrop.two' /></h2>
+                    <h1>
+                        <Translate id='createAccount.invalidLinkDrop.title' />
+                    </h1>
+                    <h2>
+                        <Translate id='createAccount.invalidLinkDrop.one' />
+                    </h2>
+                    <h2>
+                        <Translate id='createAccount.invalidLinkDrop.two' />
+                    </h2>
                 </StyledContainer>
             );
         }
@@ -315,8 +364,8 @@ const mapDispatchToProps = {
     checkNewAccount,
     clearLocalAlert,
     refreshAccount,
-    checkNearDropBalance,
-    redirectTo
+    checkLinkdropInfo,
+    redirectTo,
 };
 
 const mapStateToProps = (state, { match }) => ({
@@ -329,7 +378,7 @@ const mapStateToProps = (state, { match }) => ({
     fundingAccountId: match.params.fundingAccountId,
     nearTokenFiatValueUSD: selectNearTokenFiatValueUSD(state),
     locationSearch: getSearch(state),
-    activeAccountIdIsImplicit: selectActiveAccountIdIsImplicitAccount(state)
+    activeAccountIdIsImplicit: selectActiveAccountIdIsImplicitAccount(state),
 });
 
 const CreateAccountWithRouter = connect(

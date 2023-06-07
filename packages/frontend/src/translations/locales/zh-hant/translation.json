@@ -113,6 +113,7 @@
                     "desc": "該賬戶還未充值。請購買 $NEAR 並充值到該賬戶。",
                     "ledger": "該賬戶成功通過 Ledger 密鑰導入：",
                     "phrase": "該賬戶成功通過助記詞導入：",
+                    "privateKey": "以下帳戶已成功使用您提供的私鑰導入：",
                     "title": "賬戶已導入"
                 }
             }
@@ -683,6 +684,9 @@
         "ctaLogin": "登錄並領取",
         "ctaNew": "註冊新賬戶並領取",
         "desc": "你可以登錄已有的賬戶領取，或創建新的賬戶領取。",
+        "error": {
+            "invalidRedirectUrl": "無效的重新導向 URL"
+        },
         "modal": {
             "desc": "你的 NEAR 空投已自動領取至你的賬戶。",
             "title": "你的 NEAR 空投已領取"
@@ -957,6 +961,17 @@
         "phrase": {
             "desc": "請確認已準備 12 個單詞組成的助記詞，然後點擊下方開始恢復賬戶流程。",
             "title": "助記詞"
+        },
+        "privateKey": {
+            "desc": "請確保您的私鑰以 ed25519 開頭，然後點擊下方開始恢復流程。",
+            "title": "私鑰"
+        }
+    },
+    "recoverPrivateKey": {
+        "pageText": "請輸入與該帳戶相關聯的私鑰。",
+        "pageTitle": "使用私鑰進行恢復",
+        "privateKeyInput": {
+            "title": "私鑰"
         }
     },
     "recoverSeedPhrase": {
@@ -1163,6 +1178,9 @@
         "accordionTriggerTitle": {
             "balanceDetails": "餘額詳情",
             "transactionDetails": "交易詳情"
+        },
+        "enterAmount": {
+            "bridgedTokenWarning": "這是一個跨鏈代幣。請不要將其發送到交易所（如幣安）。"
         },
         "review": {
             "title": "你正在發送"
@@ -1578,6 +1596,7 @@
         "failTitle": "交换失败!",
         "fee": "估計費用",
         "from": "來自",
+        "inputTooLow": "輸入金額過低",
         "insufficientBalanceForAmountAndFee": "余额不足以支付输入金额和掉期费用",
         "insufficientBalanceForFee": "余额不足以支付掉期费用",
         "max": "最多：${amount} ${symbol}",
@@ -1781,6 +1800,9 @@
         },
         "recoverAccountLink": {
             "error": "導入賬戶失敗，請重試或聯繫服務支持。"
+        },
+        "recoverAccountPrivateKey": {
+            "errorPKNotValid": "提供的私鑰無效。請檢查您的私鑰並重試。"
         },
         "recoverAccountSeedPhrase": {
             "errorInvalidSeedPhrase": "助記詞無效",

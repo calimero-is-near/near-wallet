@@ -17,7 +17,7 @@ const StyledContainer = styled(Container)`
             color: #272729;
             text-align: center;
         }
-    
+
         > button {
             &.link {
                 font-weight: normal;
@@ -57,34 +57,33 @@ export default ({
     submittingTransaction,
     isSignerValid,
     isValidCallbackUrl,
-    customRPCUrl,
-    privateShardId
+    privateShardInfo,
 }) => {
-    const insufficientBalance = availableBalance && transferAmount && new BN(availableBalance).lt(new BN(transferAmount));
+    const insufficientBalance =
+        availableBalance &&
+        transferAmount &&
+        new BN(availableBalance).lt(new BN(transferAmount));
     return (
         <StyledContainer className='small-centered border'>
-            <h3><Translate id='sign.approveTransaction' /></h3>
-            {customRPCUrl
-                ? <ConnectWithPrivateShard customRPCUrl={customRPCUrl}/>
-                : <ConnectWithApplication appReferrer={accountUrlReferrer}/>
-            }
+            <h3>
+                <Translate id='sign.approveTransaction' />
+            </h3>
+            {privateShardInfo ? (
+                <ConnectWithPrivateShard privateShardInfo={privateShardInfo} />
+            ) : (
+                <ConnectWithApplication appReferrer={accountUrlReferrer} />
+            )}
             {insufficientBalance && (
-                <AlertBanner
-                    title='sign.insufficientFundsDesc'
-                    theme='warning'
-                />
+                <AlertBanner title='sign.insufficientFundsDesc' theme='warning' />
             )}
             <SignTransaction
                 transferAmount={transferAmount}
                 sender={accountLocalStorageAccountId}
                 estimatedFees={estimatedFees}
                 availableBalance={availableBalance}
-                privateShardId={privateShardId}
+                privateShardInfo={privateShardInfo}
             />
-            <FormButton
-                className='link'
-                onClick={onClickMoreInformation}
-            >
+            <FormButton className='link' onClick={onClickMoreInformation}>
                 <Translate id='button.moreInformation' />
             </FormButton>
             <FormButtonGroup>
@@ -97,7 +96,12 @@ export default ({
                 </FormButton>
                 <FormButton
                     onClick={onClickApprove}
-                    disabled={submittingTransaction || insufficientBalance || !isValidCallbackUrl || !isSignerValid}
+                    disabled={
+                        submittingTransaction ||
+                        insufficientBalance ||
+                        !isValidCallbackUrl ||
+                        !isSignerValid
+                    }
                     sending={submittingTransaction}
                 >
                     <Translate id='button.approve' />

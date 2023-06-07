@@ -4,11 +4,9 @@ import { useSelector } from 'react-redux';
 import {
     selectAccountUrlReferrer,
     selectAccountLocalStorageAccountId,
-    selectAvailableBalance
+    selectAvailableBalance,
 } from '../../../redux/slices/account';
-import {
-    selectSignTransactionAmount
-} from '../../../redux/slices/sign';
+import { selectSignTransactionAmount } from '../../../redux/slices/sign';
 import SignTransactionSummary from './SignTransactionSummary';
 
 export default ({
@@ -19,14 +17,13 @@ export default ({
     signGasFee,
     isSignerValid,
     isValidCallbackUrl,
-    customRPCUrl,
-    privateShardId,
+    privateShardInfo,
 }) => {
     const accountLocalStorageAccountId = useSelector(selectAccountLocalStorageAccountId);
     const accountUrlReferrer = useSelector(selectAccountUrlReferrer);
     const availableBalance = useSelector(selectAvailableBalance);
     const signTransactionAmount = useSelector(selectSignTransactionAmount);
-    
+
     return (
         <SignTransactionSummary
             transferAmount={signTransactionAmount}
@@ -40,8 +37,7 @@ export default ({
             submittingTransaction={submittingTransaction}
             isSignerValid={isSignerValid}
             isValidCallbackUrl={isValidCallbackUrl}
-            customRPCUrl={customRPCUrl}
-            privateShardId={privateShardId}
+            privateShardInfo={privateShardInfo}
         />
     );
 };

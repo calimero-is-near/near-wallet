@@ -4,6 +4,7 @@ import styled from 'styled-components';
 
 import Balance from '../../../common/balance/Balance';
 import FormButton from '../../../common/FormButton';
+import Notification from '../../../common/Notification';
 import AmountInput from '../AmountInput';
 import BalanceDetails from '../BalanceDetails';
 import SelectTokenButton from '../SelectTokenButton';
@@ -28,16 +29,20 @@ const StyledContainer = styled.form`
         .usd-amount {
             text-align: center;
             margin-bottom: 20px;
-            color: #A2A2A8;
+            color: #a2a2a8;
         }
 
         .select-token-btn {
             margin: 55px 0 5px 0;
         }
+
+        .warning-message {
+            margin-top: 15px;
+        }
     }
 `;
 
-const EnterAmount = ({ 
+const EnterAmount = ({
     amount,
     rawAmount,
     onChangeAmount,
@@ -49,11 +54,12 @@ const EnterAmount = ({
     selectedToken,
     onClickSelectToken,
     error,
-    isMobile
+    isMobile,
 }) => {
+    const isBridgedToken = selectedToken?.onChainFTMetadata?.isBridged;
 
     return (
-        <StyledContainer 
+        <StyledContainer
             className='buttons-bottom'
             onSubmit={(e) => {
                 onContinue(e);
@@ -61,7 +67,7 @@ const EnterAmount = ({
             }}
             novalidate
         >
-            <TabSelector/>
+            <TabSelector />
             <div className='amount-input-wrapper'>
                 <AmountInput
                     value={amount}
@@ -72,7 +78,7 @@ const EnterAmount = ({
             </div>
             {selectedToken.onChainFTMetadata?.symbol === 'NEAR' && (
                 <div className='usd-amount'>
-                    <Balance amount={rawAmount} showBalanceInNEAR={false}/>
+                    <Balance amount={rawAmount} showBalanceInNEAR={false} />
                 </div>
             )}
             <FormButton
@@ -81,24 +87,28 @@ const EnterAmount = ({
                 color='light-blue'
                 className='small rounded'
             >
-                <Translate id='button.useMax'/>
+                <Translate id='button.useMax' />
             </FormButton>
-            <SelectTokenButton
-                token={selectedToken}
-                onClick={onClickSelectToken}
-            />
+            <SelectTokenButton token={selectedToken} onClick={onClickSelectToken} />
             <BalanceDetails
                 availableToSend={availableToSend}
                 selectedToken={selectedToken}
             />
+            {isBridgedToken && (
+                <div className='warning-message' data-test-id='bridge-token-warning'>
+                    <Notification type='warning'>
+                        <Translate id='sendV2.enterAmount.bridgedTokenWarning' />
+                    </Notification>
+                </div>
+            )}
             <div className='buttons-bottom-buttons'>
                 {/* TODO: Add error state */}
                 <FormButton
                     type='submit'
                     disabled={!continueAllowed}
-                    data-test-id="sendMoneyPageSubmitAmountButton"
+                    data-test-id='sendMoneyPageSubmitAmountButton'
                 >
-                    <Translate id='button.continue'/>
+                    <Translate id='button.continue' />
                 </FormButton>
                 <FormButton
                     type='button'
@@ -106,7 +116,7 @@ const EnterAmount = ({
                     className='link'
                     color='gray'
                 >
-                    <Translate id='button.cancel'/>
+                    <Translate id='button.cancel' />
                 </FormButton>
             </div>
         </StyledContainer>

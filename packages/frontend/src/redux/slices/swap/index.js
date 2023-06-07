@@ -6,6 +6,7 @@ import { batch } from 'react-redux';
 import CONFIG from '../../../config';
 import FungibleTokens from '../../../services/FungibleTokens';
 import fungibleTokenExchange from '../../../services/tokenExchange';
+import { formatToken } from '../../../utils/token';
 import { wallet } from '../../../utils/wallet';
 import { getBalance } from '../../actions/account';
 import { showCustomAlert } from '../../actions/status';
@@ -31,8 +32,14 @@ const initialState = {
 const updateTokensBalance = createAsyncThunk(
     `${SLICE_NAME}/updateTokensBalance`,
     async ({ accountId, tokenIds }, { getState, dispatch }) => {
-        const { actions: { addTokens } } = swapSlice;
-        const { swap: { tokens: { all } } } = getState();
+        const {
+            actions: { addTokens },
+        } = swapSlice;
+        const {
+            swap: {
+                tokens: { all },
+            },
+        } = getState();
         const updatedTokens = {};
 
         try {
@@ -63,8 +70,13 @@ const updateTokensBalance = createAsyncThunk(
 const updateAllTokensData = createAsyncThunk(
     `${SLICE_NAME}/updateAllTokensData`,
     async (accountId, { getState, dispatch }) => {
-        const { actions: { setAllTokensLoading, addAllTokens, addTokensWithBalance } } = swapSlice;
-        const { tokenFiatValues, swap: { tokenNames } } = getState();
+        const {
+            actions: { setAllTokensLoading, addAllTokens, addTokensWithBalance },
+        } = swapSlice;
+        const {
+            tokenFiatValues,
+            swap: { tokenNames },
+        } = getState();
         const tokens = {};
         let tokensWithBalance = {};
 
@@ -92,10 +104,11 @@ const updateAllTokensData = createAsyncThunk(
                     fiatValueMetadata: tokenFiatValues.tokens[contractName] || {},
                 };
 
-                tokens[contractName] = config;
+                const formattedToken = formatToken(config);
+                tokens[contractName] = formattedToken;
 
                 if (balance > 0) {
-                    tokensWithBalance[contractName] = config;
+                    tokensWithBalance[contractName] = formattedToken;
                 }
             })
         );
@@ -204,7 +217,7 @@ export default swapSlice;
 export const actions = {
     fetchSwapData,
     updateTokensBalance,
-    ...swapSlice.actions
+    ...swapSlice.actions,
 };
 
 export const reducer = swapSlice.reducer;
@@ -214,15 +227,15 @@ const selectAllTokenLoading = (state) => state[SLICE_NAME].tokens.loading;
 const selectPools = (state) => state[SLICE_NAME].pools;
 
 export const selectAllTokens = createSelector(selectTokens, ({ all }) => all);
-export const selectTokensWithBalance = createSelector(selectTokens, ({ withBalance }) => withBalance);
-export const selectAllTokensLoading = createSelector(selectAllTokenLoading, (loading) => loading);
+export const selectTokensWithBalance = createSelector(
+    selectTokens,
+    ({ withBalance }) => withBalance
+);
+export const selectAllTokensLoading = createSelector(
+    selectAllTokenLoading,
+    (loading) => loading
+);
 
 export const selectAllPools = createSelector(selectPools, ({ all }) => all);
-export const selectPoolsLoading = createSelector(
-    selectPools,
-    ({ loading }) => loading
-);
-export const selectPoolsError = createSelector(
-    selectPools,
-    ({ error }) => error
-);
+export const selectPoolsLoading = createSelector(selectPools, ({ loading }) => loading);
+export const selectPoolsError = createSelector(selectPools, ({ error }) => error);

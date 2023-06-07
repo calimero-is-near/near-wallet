@@ -1,4 +1,4 @@
-import { combineReducers } from 'redux';
+import { combineReducers } from '@reduxjs/toolkit';
 
 import { wallet } from '../../utils/wallet';
 import activeAccountSlice from '../slices/activeAccount';
@@ -21,14 +21,17 @@ export default () => {
 
                     return {
                         ...accountsState,
-                        [existingAccountId]: 
-                            (existingAccountId === state?.activeAccount.accountId)
+                        [existingAccountId]:
+                            existingAccountId === state?.activeAccount.accountId
                                 ? reducer(accountState, action)
-                                : accountState
+                                : accountState,
                     };
                 }, {}),
-                [activeAccountSlice.name]: activeAccountSlice.reducer(state?.activeAccount, action)
+                [activeAccountSlice.name]: activeAccountSlice.reducer(
+                    state?.activeAccount,
+                    action
+                ),
             };
-        }
+        },
     };
 };

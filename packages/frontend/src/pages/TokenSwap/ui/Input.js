@@ -8,8 +8,7 @@ import ChevronIcon from '../../../components/svg/ChevronIcon';
 import {
     isValidAmount,
     toSignificantDecimals,
-    formatTokenAmount,
-    removeTrailingZeros,
+    formatBalance,
 } from '../../../utils/amounts';
 import { DECIMALS_TO_SAFE } from '../utils/constants';
 
@@ -75,7 +74,7 @@ const Footer = styled.div`
 
         input:not(:placeholder-shown) {
             // fix opacity effect on iOS
-            -webkit-text-fill-color: #24272A;
+            -webkit-text-fill-color: #24272a;
             opacity: 1;
         }
     }
@@ -112,7 +111,7 @@ const TokenWrapper = styled.div`
     }
 `;
 
-export default memo(function Input({
+const Input = ({
     value = '',
     loading = false,
     onChange,
@@ -127,7 +126,7 @@ export default memo(function Input({
     tokenSelectTestId,
     disabled,
     autoFocus,
-}) {
+}) => {
     const handleChange = (event) => {
         event.preventDefault();
 
@@ -140,7 +139,7 @@ export default memo(function Input({
 
     const formattedMaxBalance =
         maxBalance && typeof tokenDecimals === 'number'
-            ? removeTrailingZeros(formatTokenAmount(maxBalance, tokenDecimals, tokenDecimals))
+            ? formatBalance(maxBalance, tokenDecimals)
             : undefined;
 
     const [isWrongAmount, setIsWrongAmount] = useState(false);
@@ -169,9 +168,7 @@ export default memo(function Input({
     };
 
     const valueToShow =
-        disabled && value
-            ? toSignificantDecimals(value, DECIMALS_TO_SAFE)
-            : value;
+        disabled && value ? toSignificantDecimals(value, DECIMALS_TO_SAFE) : value;
 
     return (
         <InputWrapper>
@@ -182,7 +179,10 @@ export default memo(function Input({
                     </Label>
                 )}
                 {formattedMaxBalance && (
-                    <Balance onClick={setMaxBalance} className={`${disabled ? 'disabled' : ''}`}>
+                    <Balance
+                        onClick={setMaxBalance}
+                        className={`${disabled ? 'disabled' : ''}`}
+                    >
                         <SafeTranslate
                             id={disabled ? 'swap.available' : 'swap.max'}
                             data={balanceData}
@@ -192,21 +192,21 @@ export default memo(function Input({
             </Header>
             <Footer>
                 <TokenWrapper
-                    className="token"
+                    className='token'
                     onClick={onSelectToken}
                     data-test-id={tokenSelectTestId}
                 >
                     <Token symbol={tokenSymbol} icon={tokenIcon} />
-                    <ChevronIcon color="var(--mnw-color-1)" />
+                    <ChevronIcon color='var(--mnw-color-1)' />
                 </TokenWrapper>
                 <input
                     className={`${isWrongAmount ? 'error' : ''}`}
-                    inputMode="decimal"
+                    inputMode='decimal'
                     min={0}
                     max={Number(maxBalance) || 0}
                     value={loading ? '' : valueToShow}
                     onChange={handleChange}
-                    placeholder="0"
+                    placeholder='0'
                     autoFocus={autoFocus}
                     disabled={disabled}
                     data-test-id={inputTestId}
@@ -214,4 +214,6 @@ export default memo(function Input({
             </Footer>
         </InputWrapper>
     );
-});
+};
+
+export default memo(Input);

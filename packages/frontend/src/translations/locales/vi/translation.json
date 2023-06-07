@@ -95,7 +95,12 @@
         "recoverAccount": {
             "error": "Không thể khôi phục tài khoản. Không có tài khoản nào được tìm thấy cho cụm từ khôi phục này.",
             "errorInvalidSeedPhrase": "Không có tài khoản nào được tìm thấy cho cụm từ khôi phục này.",
-            "success": "Quá trình khôi phục bằng cách sử dụng cụm từ khôi phục đã hoàn tất.<br/><b>tài khoản ${numberOfAccounts}</b> đã được khôi phục thành công.<br/>Tài khoản đang hoạt động."
+            "success": "Quá trình khôi phục bằng cách sử dụng cụm từ khôi phục đã hoàn tất.<br/><b>tài khoản ${numberOfAccounts}</b> đã được khôi phục thành công.<br/>Tài khoản đang hoạt động.",
+            "zeroBalance": {
+                "success": {
+                    "privateKey": "Tài khoản sau đã được nhập thành công bằng cách sử dụng khóa riêng mà bạn cung cấp:"
+                }
+            }
         },
         "requestCode": {
             "error": "Không gửi được mã SMS.",
@@ -507,6 +512,9 @@
         "ctaLogin": "Đăng nhập và Claim",
         "ctaNew": "Claim với Tài khoản mới",
         "desc": "Bạn có thể claim NEAR của mình với một tài khoản hiện có (phải đăng nhập) hoặc tạo một tài khoản mới để nhận nó như một khoản gửi tiền ban đầu.",
+        "error": {
+            "invalidRedirectUrl": "URL chuyển hướng không hợp lệ"
+        },
         "modal": {
             "desc": "NEAR Drop của bạn đã được tự động gửi vào tài khoản của bạn.",
             "title": "NEAR Drop của bạn đã được claim"
@@ -740,6 +748,17 @@
         "phrase": {
             "desc": "Đảm bảo bạn có 12 từ khôi phục, sau đó nhấp vào bên dưới để bắt đầu quá trình khôi phục.",
             "title": "Cụm từ khôi phục"
+        },
+        "privateKey": {
+            "desc": "Hãy đảm bảo rằng bạn có khóa riêng bắt đầu bằng ed25519, sau đó nhấp vào liên kết bên dưới để bắt đầu quá trình khôi phục.",
+            "title": "Khóa riêng"
+        }
+    },
+    "recoverPrivateKey": {
+        "pageText": "Vui lòng nhập khóa riêng liên kết với tài khoản.",
+        "pageTitle": "Khôi phục bằng Khóa Riêng",
+        "privateKeyInput": {
+            "title": "Khóa riêng"
         }
     },
     "recoverSeedPhrase": {
@@ -922,6 +941,9 @@
         "accordionTriggerTitle": {
             "balanceDetails": "Chi tiết Số dư",
             "transactionDetails": "Chi tiết Giao dịch"
+        },
+        "enterAmount": {
+            "bridgedTokenWarning": "Đây là một token cầu nối. Đừng gửi nó đến các sàn giao dịch như Binance."
         },
         "review": {
             "title": "Bạn đang gửi"
@@ -1281,6 +1303,7 @@
         "failTitle": "Swap thất bại!",
         "fee": "Phí ước tính",
         "from": "Từ",
+        "inputTooLow": "Số tiền nhập vào quá thấp",
         "insufficientBalanceForAmountAndFee": "Không đủ số dư để thanh toán số tiền đầu vào và phí hoán đổi",
         "insufficientBalanceForFee": "Không đủ số dư để trả phí hoán đổi",
         "max": "Tối đa: ${amount} ${symbol}",
@@ -1392,6 +1415,9 @@
         },
         "promptTwoFactor": {
             "userCancelled": "Mã 2FA không được xác minh chính xác."
+        },
+        "recoverAccountPrivateKey": {
+            "errorPKNotValid": "Khóa riêng được cung cấp không hợp lệ. Vui lòng kiểm tra lại khóa riêng và thử lại."
         },
         "recoverAccountSeedPhrase": {
             "errorInvalidSeedPhrase": "Không có tài khoản nào được tìm thấy cho cụm từ khôi phục này."

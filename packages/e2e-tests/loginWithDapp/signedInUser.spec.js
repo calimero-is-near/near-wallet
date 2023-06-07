@@ -1,12 +1,12 @@
-const { test, expect } = require("../playwrightWithFixtures");
-
-const { HomePage } = require("../register/models/Home");
-const { testDappURL } = require("../utils/config");
-const { LoginPage } = require("./models/Login");
+// @ts-check
+const { test, expect } = require('../playwrightWithFixtures');
+const { HomePage } = require('../register/models/Home');
+const { testDappURL } = require('../utils/config');
+const { LoginPage } = require('./models/Login');
 
 const { describe, beforeAll, afterAll, beforeEach } = test;
 
-describe("Login with Dapp", () => {
+describe('Login with Dapp', () => {
     let testAccount;
 
     beforeAll(async ({ bankAccount }) => {
@@ -27,22 +27,18 @@ describe("Login with Dapp", () => {
         await testAccount.delete();
     });
 
-    test("navigates to login with dapp page", async ({ page }) => {
+    test('navigates to login with dapp page', async ({ page }) => {
         const loginPage = new LoginPage(page);
         await loginPage.navigate();
 
-        await expect(page).toMatchURL(/\/login/);
+        await expect(page).toHaveURL(/\/login/);
 
-        const currentlyLoggedInUser = await page.textContent(
-            "data-test-id=currentUser"
-        );
-        await expect(page).not.toHaveSelector(".dots");
-        await expect(page).toMatchText(
-            "data-test-id=dropdownCurrentlySelectedAccount",
-            currentlyLoggedInUser
-        );
+        const currentlyLoggedInUser = await page.textContent('data-test-id=currentUser');
+        expect(currentlyLoggedInUser).not.toBe(null);
+        await expect(page.locator('.dots')).not.toBeVisible();
+        await expect(page.locator('.account-id')).toHaveText(currentlyLoggedInUser || '');
     });
-    test("navigates back to dapp with access key when access is granted", async ({
+    test('navigates back to dapp with access key when access is granted', async ({
         page,
     }) => {
         const loginPage = new LoginPage(page);
@@ -50,41 +46,36 @@ describe("Login with Dapp", () => {
 
         await loginPage.allowAccess();
 
-        await expect(page).toMatchURL(new RegExp(testDappURL));
+        await expect(page).toHaveURL(new RegExp(testDappURL));
 
-        const pendingkeyLocalStorageKeys =
-            await testDappPage.getPendingAccessKeys();
-        await expect(pendingkeyLocalStorageKeys).toHaveLength(0);
-
-        const accesskeyLocalStorageKey =
-            await testDappPage.getAccessKeyForAccountId(
-                testAccount.accountId
-            );
-        await expect(accesskeyLocalStorageKey).toBeTruthy();
-
-        await expect(page).toMatchText(
-            "data-test-id=testDapp-currentUser",
+        await expect(page.locator('data-test-id=testDapp-currentUser')).toHaveText(
             new RegExp(testAccount.accountId)
         );
+
+        const pendingkeyLocalStorageKeys = await testDappPage.getPendingAccessKeys();
+        expect(pendingkeyLocalStorageKeys).toHaveLength(0);
+
+        const accesskeyLocalStorageKey = await testDappPage.getAccessKeyForAccountId(
+            testAccount.accountId
+        );
+        expect(accesskeyLocalStorageKey).toBeTruthy();
     });
-    test("navigates back to dapp when access is denied", async ({ page }) => {
+    test('navigates back to dapp when access is denied', async ({ page }) => {
         const loginPage = new LoginPage(page);
         const testDappPage = await loginPage.navigate();
 
         await loginPage.denyAccess();
 
-        await expect(page).toMatchURL(new RegExp(testDappURL));
+        await expect(page).toHaveURL(new RegExp(testDappURL));
 
-        const pendingkeyLocalStorageKeys =
-            await testDappPage.getPendingAccessKeys();
-        await expect(pendingkeyLocalStorageKeys).not.toHaveLength(0);
+        const pendingkeyLocalStorageKeys = await testDappPage.getPendingAccessKeys();
+        expect(pendingkeyLocalStorageKeys).not.toHaveLength(0);
 
-        const accesskeyLocalStorageKey =
-            await testDappPage.getAccessKeyForAccountId(
-                testAccount.accountId
-            );
-        await expect(accesskeyLocalStorageKey).toBeFalsy();
+        const accesskeyLocalStorageKey = await testDappPage.getAccessKeyForAccountId(
+            testAccount.accountId
+        );
+        expect(accesskeyLocalStorageKey).toBeFalsy();
 
-        await expect(page).toHaveSelector("data-test-id=testDapp-signInBtn");
+        await expect(page.locator('data-test-id=testDapp-signInBtn')).toBeVisible();
     });
 });

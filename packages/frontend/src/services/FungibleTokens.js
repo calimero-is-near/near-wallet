@@ -24,6 +24,18 @@ export default class FungibleTokens {
     // View functions are not signed, so do not require a real account!
     static viewFunctionAccount = wallet.getAccountBasic('dontcare');
 
+    static async checkRegistration({ contractName, accountId }) {
+        try {
+            return await this.viewFunctionAccount.viewFunction(
+                contractName,
+                'check_registration',
+                { account_id: accountId }
+            );
+        } catch {
+            return null;
+        }
+    }
+
     static getParsedTokenAmount(amount, symbol, decimals) {
         const parsedTokenAmount =
             symbol === CONFIG.NEAR_ID
@@ -59,99 +71,140 @@ export default class FungibleTokens {
     }
 
     static async getMetadata({ contractName }) {
-        return this.viewFunctionAccount.viewFunction(
-            contractName,
-            'ft_metadata'
-        );
+        return this.viewFunctionAccount.viewFunction(contractName, 'ft_metadata');
     }
 
     static async getBalanceOf({ contractName, accountId }) {
-        return this.viewFunctionAccount.viewFunction(
-            contractName,
-            'ft_balance_of',
-            { account_id: accountId }
-        );
+        return this.viewFunctionAccount.viewFunction(contractName, 'ft_balance_of', {
+            account_id: accountId,
+        });
     }
 
     async getEstimatedTotalFees({ accountId, contractName } = {}) {
-        if (
-            contractName &&
-            accountId &&
-            !(await this.isStorageBalanceAvailable({ contractName, accountId }))
-        ) {
-            const totalGasFees = await getTotalGasFee(new BN(CONFIG.FT_TRANSFER_GAS).add(new BN(CONFIG.FT_STORAGE_DEPOSIT_GAS)));
-            return new BN(totalGasFees).add(new BN(CONFIG.FT_MINIMUM_STORAGE_BALANCE)).toString();
-        } else {
-            return getTotalGasFee(contractName ? CONFIG.FT_TRANSFER_GAS : CONFIG.SEND_NEAR_GAS);
+        if (contractName && accountId) {
+            const isRegistrationRequired = await this.isAccountUnregistered({
+                contractName,
+                accountId,
+            });
+            const isStorageDepositRequired = await this.isStorageDepositRequired({
+                contractName,
+                accountId,
+            });
+
+            const transferGasFee = new BN(CONFIG.FT_TRANSFER_GAS);
+
+            if (isRegistrationRequired) {
+                const gasFeesWithStorage = await getTotalGasFee(
+                    transferGasFee.add(new BN(CONFIG.FT_REGISTRATION_DEPOSIT_GAS))
+                );
+                return new BN(gasFeesWithStorage)
+                    .add(new BN(CONFIG.FT_REGISTRATION_DEPOSIT))
+                    .toString();
+            }
+
+            if (isStorageDepositRequired) {
+                const gasFeesWithStorage = await getTotalGasFee(
+                    transferGasFee.add(new BN(CONFIG.FT_STORAGE_DEPOSIT_GAS))
+                );
+                return new BN(gasFeesWithStorage)
+                    .add(new BN(CONFIG.FT_MINIMUM_STORAGE_BALANCE))
+                    .toString();
+            }
         }
+
+        return getTotalGasFee(
+            contractName ? CONFIG.FT_TRANSFER_GAS : CONFIG.SEND_NEAR_GAS
+        );
     }
 
     async getEstimatedTotalNearAmount({ amount }) {
-        return new BN(amount)
-            .add(new BN(await this.getEstimatedTotalFees()))
-            .toString();
+        return new BN(amount).add(new BN(await this.getEstimatedTotalFees())).toString();
     }
 
-    async isStorageBalanceAvailable({ contractName, accountId }) {
-        const storageBalance = await this.constructor.getStorageBalance({
-            contractName,
-            accountId,
-        });
-        return storageBalance?.total !== undefined;
+    async isAccountUnregistered({ contractName, accountId }) {
+        return (
+            (await this.constructor.checkRegistration({ contractName, accountId })) ===
+            false
+        );
+    }
+
+    async isStorageDepositRequired({ accountId, contractName }) {
+        try {
+            const storageBalance = await this.constructor.getStorageBalance({
+                contractName,
+                accountId,
+            });
+            return storageBalance?.total === undefined;
+        } catch {
+            return false;
+        }
     }
 
     async transfer({ accountId, contractName, amount, receiverId, memo }) {
         // Ensure our awareness of 2FA being enabled is accurate before we submit any transaction(s)
         const account = await wallet.getAccount(accountId);
 
-        if (contractName && contractName.toUpperCase() !== CONFIG.NEAR_ID) {
-            const storageAvailable = await this.isStorageBalanceAvailable({
-                contractName,
-                accountId: receiverId,
-            });
+        if (!contractName || contractName.toUpperCase() === CONFIG.NEAR_ID) {
+            return account.sendMoney(receiverId, amount);
+        }
 
-            if (!storageAvailable) {
-                try {
+        const isStorageTransferRequired = await this.isStorageDepositRequired({
+            contractName,
+            accountId: receiverId,
+        });
+
+        if (isStorageTransferRequired) {
+            try {
+                await this.transferStorageDeposit({
+                    account,
+                    contractName,
+                    receiverId,
+                    storageDepositAmount: CONFIG.FT_MINIMUM_STORAGE_BALANCE,
+                });
+            } catch (e) {
+                // sic.typo in `mimimum` wording of responses, so we check substring
+                // Original string was: 'attached deposit is less than the mimimum storage balance'
+                // TODO: Call storage_balance_bounds: https://github.com/near/near-wallet/issues/2522
+                if (e.message.includes('attached deposit is less than')) {
                     await this.transferStorageDeposit({
                         account,
                         contractName,
                         receiverId,
-                        storageDepositAmount: CONFIG.FT_MINIMUM_STORAGE_BALANCE,
+                        storageDepositAmount: CONFIG.FT_MINIMUM_STORAGE_BALANCE_LARGE,
                     });
-                } catch (e) {
-                    // sic.typo in `mimimum` wording of responses, so we check substring
-                    // Original string was: 'attached deposit is less than the mimimum storage balance'
-                    // TODO: Call storage_balance_bounds: https://github.com/near/near-wallet/issues/2522
-                    if (e.message.includes('attached deposit is less than')) {
-                        await this.transferStorageDeposit({
-                            account,
-                            contractName,
-                            receiverId,
-                            storageDepositAmount:
-                                CONFIG.FT_MINIMUM_STORAGE_BALANCE_LARGE,
-                        });
-                    }
                 }
             }
-
-            return await account.signAndSendTransaction({
-                receiverId: contractName,
-                actions: [
-                    functionCall(
-                        'ft_transfer',
-                        {
-                            amount,
-                            memo: memo,
-                            receiver_id: receiverId,
-                        },
-                        CONFIG.FT_TRANSFER_GAS,
-                        CONFIG.TOKEN_TRANSFER_DEPOSIT
-                    ),
-                ],
-            });
-        } else {
-            return await account.sendMoney(receiverId, amount);
         }
+
+        const isRegistrationRequired = await this.isAccountUnregistered({
+            accountId: receiverId,
+            contractName,
+        });
+
+        return account.signAndSendTransaction({
+            receiverId: contractName,
+            actions: [
+                ...(isRegistrationRequired
+                    ? [
+                          functionCall(
+                              'register_account',
+                              { account_id: receiverId },
+                              CONFIG.FT_REGISTRATION_DEPOSIT_GAS
+                          ),
+                      ]
+                    : []),
+                functionCall(
+                    'ft_transfer',
+                    {
+                        amount,
+                        memo: memo,
+                        receiver_id: receiverId,
+                    },
+                    CONFIG.FT_TRANSFER_GAS,
+                    CONFIG.TOKEN_TRANSFER_DEPOSIT
+                ),
+            ],
+        });
     }
 
     async transferStorageDeposit({
@@ -199,7 +252,7 @@ export default class FungibleTokens {
                 'near_withdraw',
                 { amount: parseNearAmount(amount) },
                 CONFIG.FT_STORAGE_DEPOSIT_GAS,
-                CONFIG.TOKEN_TRANSFER_DEPOSIT,
+                CONFIG.TOKEN_TRANSFER_DEPOSIT
             )
         );
 
@@ -228,7 +281,7 @@ export default class FungibleTokens {
                     'storage_deposit',
                     {},
                     CONFIG.FT_STORAGE_DEPOSIT_GAS,
-                    CONFIG.FT_MINIMUM_STORAGE_BALANCE,
+                    CONFIG.FT_MINIMUM_STORAGE_BALANCE
                 )
             );
         }
