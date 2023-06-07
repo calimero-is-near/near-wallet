@@ -19,6 +19,7 @@ export async function syncPrivateShardAccount({
         body: JSON.stringify(postData),
         headers: {
             'Content-type': 'application/json; charset=utf-8',
+            'x-api-token': shardInfo.shardApiToken
         },
     });
     if (!response.ok) {
